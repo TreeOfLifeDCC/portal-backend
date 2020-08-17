@@ -5,11 +5,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class HomeController {
+@RequestMapping("/dtol")
+public class BioSampleController {
 
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String home() {
-        return "Welcome to DToL Backend Project";
+    @RequestMapping(value = "", method = RequestMethod.GET)
+    public String findBioSampleById() {
+        return "Welcome to Darwin Tree of Life Project";
     }
-
 }
