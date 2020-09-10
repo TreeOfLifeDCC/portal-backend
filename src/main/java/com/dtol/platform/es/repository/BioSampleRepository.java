@@ -1,51 +1,27 @@
 package com.dtol.platform.es.repository;
 
 import com.dtol.platform.es.mapping.BioSample;
-import org.elasticsearch.index.query.Operator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.*;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.annotations.Query;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
-import java.util.UUID;
+import java.util.List;
 
-import static org.elasticsearch.action.admin.indices.stats.CommonStatsFlags.Flag.Get;
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+public interface BioSampleRepository extends PagingAndSortingRepository<BioSample, String> {
 
-@Repository
-public class BioSampleRepository {
+    Page<BioSample> findAll(Pageable pageable);
 
-    @Autowired
-    private ElasticsearchOperations elasticsearchOperations;
+    BioSample findByScientificName(String scientificName);
 
-    public String save(BioSample bioSample) {
-        IndexCoordinates indexCoordinates = elasticsearchOperations.getIndexCoordinatesFor(BioSample.class);
-        IndexQuery indexQuery = new IndexQueryBuilder()
-                .withId(UUID.randomUUID().toString())
-                .withObject(bioSample)
-                .build();
-        String documentId = elasticsearchOperations.index(indexQuery, indexCoordinates);
-        return documentId;
-    }
+    @Query("{\"bool\": {\"must\": [{\"match\": {\"status\": \"?0\"}}]}}")
+    List<BioSample> findByStatusUsingCustomQuery(String status);
 
-    public BioSample findById(String id) {
-        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withQuery(matchQuery("id",id).operator(Operator.AND))
-                .build();
-        SearchHits<BioSample> bioSample = elasticsearchOperations
-                .search(searchQuery, BioSample.class, IndexCoordinates.of("dtol"));
+    @Query("{\"match\": {\"description\": {\"query\": \"?0\"}}}")
+    List<BioSample> findByDescription(String description);
 
-        if(bioSample.getTotalHits() > 0) {
-            return bioSample.getSearchHit(0).getContent();
-        }
-        else {
-            return new BioSample();
-        }
+    BioSample save(BioSample bioSample);
 
-
-    }
+    BioSample findBioSampleByAccession(String accession);
 }
