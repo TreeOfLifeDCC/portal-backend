@@ -1,5 +1,6 @@
 package com.dtol.platform.es.mapping;
 
+import com.dtol.platform.es.mapping.DTO.BioSampleExperimentDTO;
 import org.springframework.data.annotation.Id;
 import com.dtol.platform.es.mapping.DTO.BioSampleCustomFieldDTO;
 import com.dtol.platform.es.mapping.DTO.BioSampleOntologyDTO;
@@ -92,6 +93,9 @@ public class BioSample {
 
     @Field(name="customField", type = FieldType.Nested)
     private List<BioSampleCustomFieldDTO> customField;
+
+    @Field(name="experiment", type = FieldType.Nested)
+    private List<BioSampleExperimentDTO> experiment;
 
     public String getAccession() {
         return accession;
@@ -291,5 +295,13 @@ public class BioSample {
 
     public void setCustomField(List<BioSampleCustomFieldDTO> customField) {
         this.customField = customField;
+    }
+
+    public List<BioSampleExperimentDTO> getExperiment() {
+        return experiment;
+    }
+
+    public void setExperiment(List<BioSampleExperimentDTO> experiment) {
+        this.experiment = experiment;
     }
 }
