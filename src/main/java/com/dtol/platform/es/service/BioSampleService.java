@@ -4,11 +4,15 @@ import com.dtol.platform.es.mapping.BioSample;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 public interface BioSampleService {
 
-    public BioSample findBioSampleById(String id);
+    public List<BioSample> findAll(int page, int size);
 
-    public BioSample findBioSampleByName(String name);
+    public BioSample findBioSampleByAccession(String accession);
+
+    public BioSample findBioSampleByScientificName(String scientificName);
 
     public String saveBioSample(BioSample bioSample);
 }
