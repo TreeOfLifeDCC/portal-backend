@@ -15,7 +15,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = "com.dtol.platform.es.repository")
 @ComponentScan(basePackages = { "com.dtol.platform.es.service" })
 public class ElasticSearchConfig {
-    @Value("${app.es.connection.url}")
+    @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
 
     @Bean
