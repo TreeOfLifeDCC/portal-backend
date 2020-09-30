@@ -13,7 +13,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.time.LocalDate;
 import java.util.List;
 
-@Document(indexName = "dtol", createIndex = true, replicas = 2, shards = 1)
+@Document(indexName = "dtol", createIndex = false, replicas = 2, shards = 1)
 public class BioSample {
 
     @Id
