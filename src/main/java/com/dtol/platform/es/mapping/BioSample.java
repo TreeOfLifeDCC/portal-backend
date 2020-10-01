@@ -40,6 +40,12 @@ public class BioSample {
     @Field(name="sex", type = FieldType.Nested)
     private List<BioSampleOntologyDTO> sex;
 
+    @Field(name="organism", type = FieldType.Text)
+    private String organism;
+
+    @Field(name="commonName", type = FieldType.Text)
+    private String commonName;
+
     @Field(name="relationship", type = FieldType.Nested)
     private List<BioSampleRelationDTO> relationship;
 
@@ -97,6 +103,17 @@ public class BioSample {
     @Field(name="experiment", type = FieldType.Nested)
     private List<BioSampleExperimentDTO> experiment;
 
+    @Field(name="trackingSystem", type = FieldType.Keyword)
+    private String trackingSystem;
+
+    public String getId() {
+        return Id;
+    }
+
+    public void setId(String id) {
+        Id = id;
+    }
+
     public String getAccession() {
         return accession;
     }
@@ -151,6 +168,22 @@ public class BioSample {
 
     public void setSex(List<BioSampleOntologyDTO> sex) {
         this.sex = sex;
+    }
+
+    public String getOrganism() {
+        return organism;
+    }
+
+    public void setOrganism(String organism) {
+        this.organism = organism;
+    }
+
+    public String getCommonName() {
+        return commonName;
+    }
+
+    public void setCommonName(String commonName) {
+        this.commonName = commonName;
     }
 
     public List<BioSampleRelationDTO> getRelationship() {
@@ -303,5 +336,13 @@ public class BioSample {
 
     public void setExperiment(List<BioSampleExperimentDTO> experiment) {
         this.experiment = experiment;
+    }
+
+    public String getTrackingSystem() {
+        return trackingSystem;
+    }
+
+    public void setTrackingSystem(String trackingSystem) {
+        this.trackingSystem = trackingSystem;
     }
 }
