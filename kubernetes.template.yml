@@ -45,3 +45,14 @@ spec:
       name: http
   selector:
       app: _APP_NAME_
+
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+spec:
+  type: ExternalName
+  externalName: elasticsearch.elasticsearch.cluster.local
+  ports:
+  - port: 9200
