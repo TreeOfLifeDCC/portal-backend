@@ -53,6 +53,6 @@ metadata:
   name: elasticsearch
 spec:
   type: ExternalName
-  externalName: elasticsearch.elasticsearch.cluster.local
+  externalName: elasticsearch.elasticsearch.svc.cluster.local
   ports:
   - port: 9200
