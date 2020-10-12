@@ -15,4 +15,6 @@ public interface BioSampleService {
     public BioSample findBioSampleByScientificName(String scientificName);
 
     public String saveBioSample(BioSample bioSample);
+
+    public long countAll();
 }

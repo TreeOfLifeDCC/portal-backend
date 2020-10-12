@@ -41,5 +41,9 @@ public class BioSampleServiceImpl implements BioSampleService {
         return bs.getAccession();
     }
 
+    public long countAll() {
+        return bioSampleRepository.count();
+    }
+
 
 }

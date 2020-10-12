@@ -5,6 +5,7 @@ import com.dtol.platform.es.service.BioSampleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -15,8 +16,13 @@ public class BioSampleController {
     BioSampleService bioSampleService;
 
     @RequestMapping(value = "", method = RequestMethod.GET)
-    public List<BioSample> findBioSampleByAccession(@RequestParam("page") int page, @RequestParam("size") int size) {
-        return bioSampleService.findAll(page, size);
+    public HashMap<String, Object> findBioSampleByAccession(@RequestParam("page") int page, @RequestParam("size") int size) {
+        HashMap<String, Object> response =new HashMap<>();
+        List<BioSample> resp = bioSampleService.findAll(page, size);
+        response.put("biosamples",resp);
+        response.put("count",resp.size());
+        return response;
+
     }
 
     @RequestMapping(value = "/{accession}", method = RequestMethod.GET)
