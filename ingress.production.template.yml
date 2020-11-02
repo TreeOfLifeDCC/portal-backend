@@ -3,14 +3,17 @@ kind: Ingress
 metadata:
   name: ingress-portal-backend
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
+  tls:
+    - hosts:
+        - portal.darwintreeoflife.org
+      secretName: tls-secret
   rules:
-  - host:
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: _APP_NAME_
-          servicePort: 8080
+    - host: portal.darwintreeoflife.org
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            backend:
+              serviceName: back-end-svc
+              servicePort: 8080
