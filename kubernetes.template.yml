@@ -33,11 +33,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: _APP_NAME_
+  name: back-end-svc
   labels:
-    app: _APP_NAME_
+    app: back-end-svc
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 8080
       targetPort: 8080
