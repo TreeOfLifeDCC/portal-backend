@@ -42,7 +42,6 @@ spec:
     - port: 8080
       targetPort: 8080
       protocol: TCP
-      name: TCP
   selector:
       app: _APP_NAME_
 
