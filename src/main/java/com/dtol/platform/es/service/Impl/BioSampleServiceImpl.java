@@ -7,14 +7,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+
 @Service
 @Transactional
 public class BioSampleServiceImpl implements BioSampleService {
+
+    @Autowired
+    private ElasticsearchOperations elasticsearchOperations;
 
     @Autowired
     BioSampleRepository bioSampleRepository;
@@ -41,8 +50,13 @@ public class BioSampleServiceImpl implements BioSampleService {
         return bs.getAccession();
     }
 
-    public long countAll() {
-        return bioSampleRepository.count();
+    public long getBiosampleCount() {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(matchAllQuery())
+                .build();
+        long count = elasticsearchOperations
+                .count(searchQuery, IndexCoordinates.of("dtol"));
+        return count;
     }
 
 

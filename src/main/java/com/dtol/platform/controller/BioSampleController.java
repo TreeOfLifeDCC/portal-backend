@@ -9,18 +9,19 @@ import java.util.HashMap;
 import java.util.List;
 
 @RestController
-@RequestMapping("/dtol")
+@RequestMapping("/api/dtol")
 public class BioSampleController {
 
     @Autowired
     BioSampleService bioSampleService;
 
     @RequestMapping(value = "", method = RequestMethod.GET)
-    public HashMap<String, Object> findBioSampleByAccession(@RequestParam("page") int page, @RequestParam("size") int size) {
+    public HashMap<String, Object> getBioSample(@RequestParam("page") int page, @RequestParam("size") int size) {
         HashMap<String, Object> response =new HashMap<>();
         List<BioSample> resp = bioSampleService.findAll(page, size);
+        long count = bioSampleService.getBiosampleCount();
         response.put("biosamples",resp);
-        response.put("count",resp.size());
+        response.put("count",count);
         return response;
 
     }
