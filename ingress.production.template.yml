@@ -15,5 +15,5 @@ spec:
         paths:
           - path: /api(/|$)(.*)
             backend:
-              serviceName: back-end-svc
+              serviceName: portal-backend-svc
               servicePort: 8080

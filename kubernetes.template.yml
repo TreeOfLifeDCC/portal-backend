@@ -33,16 +33,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: back-end-svc
+  name: portal-backend-svc
   labels:
-    app: back-end-svc
+    app: _APP_NAME_
 spec:
   type: ClusterIP
   ports:
     - port: 8080
       targetPort: 8080
       protocol: TCP
-      name: http
+      name: TCP
   selector:
       app: _APP_NAME_
 
