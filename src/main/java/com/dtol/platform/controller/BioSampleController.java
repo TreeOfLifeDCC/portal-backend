@@ -16,7 +16,8 @@ public class BioSampleController {
     BioSampleService bioSampleService;
 
     @RequestMapping(value = "", method = RequestMethod.GET)
-    public HashMap<String, Object> getBioSample(@RequestParam("offset") int offset, @RequestParam("limit") int limit) {
+    public HashMap<String, Object> getBioSample(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+                                                @RequestParam(value = "limit", required = false, defaultValue = "100") int limit) {
         HashMap<String, Object> response =new HashMap<>();
         List<BioSample> resp = bioSampleService.findAll(offset, limit);
         long count = bioSampleService.getBiosampleCount();
