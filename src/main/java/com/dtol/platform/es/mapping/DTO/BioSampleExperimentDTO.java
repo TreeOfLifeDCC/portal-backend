@@ -1,8 +1,10 @@
 package com.dtol.platform.es.mapping.DTO;
 
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class BioSampleExperimentDTO {
@@ -24,6 +26,20 @@ public class BioSampleExperimentDTO {
     private List<String> submitted_ftp;
     @Field(type = FieldType.Keyword)
     private List<String> sra_ftp;
+    @Field(type = FieldType.Date, format = DateFormat.basic_date_time, pattern = "yyyy-MM-dd")
+    private String first_public;
+    @Field(type = FieldType.Keyword)
+    private String instrument_model;
+    @Field(type = FieldType.Keyword)
+    private String instrument_platform;
+    @Field(type = FieldType.Keyword)
+    private String library_layout;
+    @Field(type = FieldType.Keyword)
+    private String library_selection;
+    @Field(type = FieldType.Keyword)
+    private String library_source;
+    @Field(type = FieldType.Keyword)
+    private String library_strategy;
 
     public String getStudy_accession() {
         return study_accession;
@@ -95,5 +111,61 @@ public class BioSampleExperimentDTO {
 
     public void setSra_ftp(List<String> sra_ftp) {
         this.sra_ftp = sra_ftp;
+    }
+
+    public String getFirst_public() {
+        return first_public;
+    }
+
+    public void setFirst_public(String first_public) {
+        this.first_public = first_public;
+    }
+
+    public String getInstrument_model() {
+        return instrument_model;
+    }
+
+    public void setInstrument_model(String instrument_model) {
+        this.instrument_model = instrument_model;
+    }
+
+    public String getInstrument_platform() {
+        return instrument_platform;
+    }
+
+    public void setInstrument_platform(String instrument_platform) {
+        this.instrument_platform = instrument_platform;
+    }
+
+    public String getLibrary_layout() {
+        return library_layout;
+    }
+
+    public void setLibrary_layout(String library_layout) {
+        this.library_layout = library_layout;
+    }
+
+    public String getLibrary_selection() {
+        return library_selection;
+    }
+
+    public void setLibrary_selection(String library_selection) {
+        this.library_selection = library_selection;
+    }
+
+    public String getLibrary_source() {
+        return library_source;
+    }
+
+    public void setLibrary_source(String library_source) {
+        this.library_source = library_source;
+    }
+
+    public String getLibrary_strategy() {
+        return library_strategy;
+    }
+
+    public void setLibrary_strategy(String library_strategy) {
+        this.library_strategy = library_strategy;
     }
 }
