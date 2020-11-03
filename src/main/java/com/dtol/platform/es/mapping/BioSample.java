@@ -1,10 +1,7 @@
 package com.dtol.platform.es.mapping;
 
-import com.dtol.platform.es.mapping.DTO.BioSampleExperimentDTO;
+import com.dtol.platform.es.mapping.DTO.*;
 import org.springframework.data.annotation.Id;
-import com.dtol.platform.es.mapping.DTO.BioSampleCustomFieldDTO;
-import com.dtol.platform.es.mapping.DTO.BioSampleOntologyDTO;
-import com.dtol.platform.es.mapping.DTO.BioSampleRelationDTO;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -19,92 +16,95 @@ public class BioSample {
     @Id
     private String Id;
 
-    @Field(name="accession", type = FieldType.Keyword)
+    @Field(name = "accession", type = FieldType.Keyword)
     private String accession;
 
-    @Field(name="taxonId", type = FieldType.Keyword )
+    @Field(name = "taxonId", type = FieldType.Keyword)
     private String taxonId;
 
-    @Field(name="scientificName", type = FieldType.Keyword)
+    @Field(name = "scientificName", type = FieldType.Keyword)
     private String scientificName;
 
-    @Field(name="specimenId", type = FieldType.Keyword)
+    @Field(name = "specimenId", type = FieldType.Keyword)
     private String specimenId;
 
-    @Field(name="cultureOrStrainId", type = FieldType.Text)
+    @Field(name = "cultureOrStrainId", type = FieldType.Text)
     private String cultureOrStrainId;
 
-    @Field(name="lifeStage", type = FieldType.Text)
+    @Field(name = "lifeStage", type = FieldType.Text)
     private String lifeStage;
 
-    @Field(name="sex", type = FieldType.Nested)
+    @Field(name = "sex", type = FieldType.Nested)
     private List<BioSampleOntologyDTO> sex;
 
-    @Field(name="organism", type = FieldType.Text)
+    @Field(name = "organism", type = FieldType.Text)
     private String organism;
 
-    @Field(name="commonName", type = FieldType.Text)
+    @Field(name = "commonName", type = FieldType.Text)
     private String commonName;
 
-    @Field(name="relationship", type = FieldType.Nested)
+    @Field(name = "relationship", type = FieldType.Nested)
     private List<BioSampleRelationDTO> relationship;
 
-    @Field(name="gal", type = FieldType.Text)
+    @Field(name = "gal", type = FieldType.Text)
     private String gal;
 
-    @Field(name="galSampleId", type = FieldType.Keyword)
+    @Field(name = "galSampleId", type = FieldType.Keyword)
     private String galSampleId;
 
-    @Field(name="collectedBy", type = FieldType.Text)
+    @Field(name = "collectedBy", type = FieldType.Text)
     private String collectedBy;
 
-    @Field(name="collectingInstitution", type = FieldType.Text)
+    @Field(name = "collectingInstitution", type = FieldType.Text)
     private String collectingInstitution;
 
-    @Field(name="collectionDate", type = FieldType.Date, format = DateFormat.basic_date_time, pattern = "yyyy-MM-dd")
+    @Field(name = "collectionDate", type = FieldType.Date, format = DateFormat.basic_date_time, pattern = "yyyy-MM-dd")
     private LocalDate collectionDate;
 
-    @Field(name="geographicLocationCountry", type = FieldType.Text)
+    @Field(name = "geographicLocationCountry", type = FieldType.Text)
     private String geographicLocationCountry;
 
-    @Field(name="geographicLocationRegion", type = FieldType.Text)
+    @Field(name = "geographicLocationRegion", type = FieldType.Text)
     private String geographicLocationRegion;
 
-    @Field(name="geographicLocationLatitude", type = FieldType.Text)
+    @Field(name = "geographicLocationLatitude", type = FieldType.Text)
     private Double geographicLocationLatitude;
 
-    @Field(name="geographicLocationLongitude", type = FieldType.Text)
+    @Field(name = "geographicLocationLongitude", type = FieldType.Text)
     private Double geographicLocationLongitude;
 
-    @Field(name="habitat", type = FieldType.Text)
+    @Field(name = "habitat", type = FieldType.Text)
     private String habitat;
 
-    @Field(name="geographicLocationDepth", type = FieldType.Text)
+    @Field(name = "geographicLocationDepth", type = FieldType.Text)
     private Double geographicLocationDepth;
 
-    @Field(name="geographicLocationElevation", type = FieldType.Text)
+    @Field(name = "geographicLocationElevation", type = FieldType.Text)
     private Double geographicLocationElevation;
 
-    @Field(name="identifiedBy", type = FieldType.Text)
+    @Field(name = "identifiedBy", type = FieldType.Text)
     private String identifiedBy;
 
-    @Field(name="identifierAffiliation", type = FieldType.Text)
+    @Field(name = "identifierAffiliation", type = FieldType.Text)
     private String identifierAffiliation;
 
-    @Field(name="specimenVoucher", type = FieldType.Text)
+    @Field(name = "specimenVoucher", type = FieldType.Text)
     private String specimenVoucher;
 
-    @Field(name="projectName", type = FieldType.Keyword)
+    @Field(name = "projectName", type = FieldType.Keyword)
     private String projectName;
 
-    @Field(name="customField", type = FieldType.Nested)
+    @Field(name = "customField", type = FieldType.Nested)
     private List<BioSampleCustomFieldDTO> customField;
 
-    @Field(name="experiment", type = FieldType.Nested)
+    @Field(name = "experiment", type = FieldType.Nested)
     private List<BioSampleExperimentDTO> experiment;
 
-    @Field(name="trackingSystem", type = FieldType.Keyword)
+    @Field(name = "trackingSystem", type = FieldType.Keyword)
     private String trackingSystem;
+
+    @Field(name = "assemblies", type = FieldType.Nested)
+    private List<BioSampleAssemblyDTO> assemblies;
 
     public String getId() {
         return Id;
@@ -344,5 +344,13 @@ public class BioSample {
 
     public void setTrackingSystem(String trackingSystem) {
         this.trackingSystem = trackingSystem;
+    }
+
+    public List<BioSampleAssemblyDTO> getAssemblies() {
+        return assemblies;
+    }
+
+    public void setAssemblies(List<BioSampleAssemblyDTO> assemblies) {
+        this.assemblies = assemblies;
     }
 }
