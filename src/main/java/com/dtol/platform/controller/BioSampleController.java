@@ -32,9 +32,9 @@ public class BioSampleController {
         return bioSampleService.findBioSampleByAccession(accession);
     }
 
-    @RequestMapping(value = "/sample/{name}", method = RequestMethod.GET)
-    public BioSample findBioSampleByScientificName(@PathVariable("name") String name) {
-        return bioSampleService.findBioSampleByScientificName(name);
+    @RequestMapping(value = "/organism/{name}", method = RequestMethod.GET)
+    public BioSample findBioSampleByOrganism(@PathVariable("name") String name) {
+        return bioSampleService.findBioSampleByOrganism(name);
     }
 
     @RequestMapping(value = "/sample", method = RequestMethod.POST)

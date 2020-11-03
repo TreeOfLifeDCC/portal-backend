@@ -12,7 +12,7 @@ public interface BioSampleService {
 
     public BioSample findBioSampleByAccession(String accession);
 
-    public BioSample findBioSampleByScientificName(String scientificName);
+    public BioSample findBioSampleByOrganism(String organism);
 
     public String saveBioSample(BioSample bioSample);
 

@@ -13,7 +13,7 @@ public interface BioSampleRepository extends PagingAndSortingRepository<BioSampl
 
     Page<BioSample> findAll(Pageable pageable);
 
-    BioSample findByScientificName(String scientificName);
+    BioSample findBioSampleByOrganism(String organism);
 
     @Query("{\"bool\": {\"must\": [{\"match\": {\"status\": \"?0\"}}]}}")
     List<BioSample> findByStatusUsingCustomQuery(String status);

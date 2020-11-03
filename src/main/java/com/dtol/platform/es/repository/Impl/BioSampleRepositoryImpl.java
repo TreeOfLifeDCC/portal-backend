@@ -21,6 +21,7 @@ public abstract class BioSampleRepositoryImpl implements BioSampleRepository {
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
+    @Override
     public BioSample save(BioSample bioSample) {
         IndexCoordinates indexCoordinates = elasticsearchOperations.getIndexCoordinatesFor(BioSample.class);
         IndexQuery indexQuery = new IndexQueryBuilder()
@@ -31,9 +32,26 @@ public abstract class BioSampleRepositoryImpl implements BioSampleRepository {
         return bioSample;
     }
 
+    @Override
     public BioSample findBioSampleByAccession(String accession) {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchQuery("accession",accession).operator(Operator.AND))
+                .build();
+        SearchHits<BioSample> bioSample = elasticsearchOperations
+                .search(searchQuery, BioSample.class, IndexCoordinates.of("dtol"));
+
+        if(bioSample.getTotalHits() > 0) {
+            return bioSample.getSearchHit(0).getContent();
+        }
+        else {
+            return new BioSample();
+        }
+    }
+
+    @Override
+    public BioSample findBioSampleByOrganism(String organism) {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(matchQuery("organism",organism).operator(Operator.AND))
                 .build();
         SearchHits<BioSample> bioSample = elasticsearchOperations
                 .search(searchQuery, BioSample.class, IndexCoordinates.of("dtol"));

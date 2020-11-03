@@ -40,8 +40,8 @@ public class BioSampleServiceImpl implements BioSampleService {
         return bioSample;
     }
 
-    public BioSample findBioSampleByScientificName(String scientificName) {
-        BioSample bioSample = bioSampleRepository.findByScientificName(scientificName);
+    public BioSample findBioSampleByOrganism(String organism) {
+        BioSample bioSample = bioSampleRepository.findBioSampleByOrganism(organism);
         return bioSample;
     }
 
