@@ -40,7 +40,7 @@ public class BioSampleStatusTrackingServiceImpl implements BioSampleStatusTracki
                 .withQuery(matchAllQuery())
                 .build();
         long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("dtol"));
+                .count(searchQuery, IndexCoordinates.of("statuses"));
         return count;
     }
 
