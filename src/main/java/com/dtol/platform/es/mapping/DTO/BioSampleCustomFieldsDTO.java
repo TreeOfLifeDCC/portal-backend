@@ -5,7 +5,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.List;
 
-public class BioSampleCustomFieldDTO {
+public class BioSampleCustomFieldsDTO {
 
     @Field(type = FieldType.Keyword)
     private String name;

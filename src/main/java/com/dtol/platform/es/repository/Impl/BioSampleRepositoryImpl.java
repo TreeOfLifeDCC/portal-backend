@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 
 @Repository

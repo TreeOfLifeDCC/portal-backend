@@ -55,7 +55,7 @@ public class BioSampleServiceImpl implements BioSampleService {
                 .withQuery(matchAllQuery())
                 .build();
         long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("dtol"));
+                .count(searchQuery, IndexCoordinates.of("organisms"));
         return count;
     }
 

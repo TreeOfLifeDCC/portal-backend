@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @RestController
-@RequestMapping("/dtol")
+@RequestMapping("/organisms")
 public class BioSampleController {
 
     @Autowired

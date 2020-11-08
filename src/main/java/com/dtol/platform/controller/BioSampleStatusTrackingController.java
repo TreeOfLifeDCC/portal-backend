@@ -1,6 +1,5 @@
 package com.dtol.platform.controller;
 
-import com.dtol.platform.es.mapping.BioSample;
 import com.dtol.platform.es.mapping.BioSampleStatusTracking;
 import com.dtol.platform.es.service.BioSampleStatusTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,6 @@
 package com.dtol.platform.es.service;
 
 import com.dtol.platform.es.mapping.BioSample;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
