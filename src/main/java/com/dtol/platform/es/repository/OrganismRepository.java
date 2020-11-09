@@ -1,6 +1,6 @@
 package com.dtol.platform.es.repository;
 
-import com.dtol.platform.es.mapping.BioSample;
+import com.dtol.platform.es.mapping.Organism;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.annotations.Query;
@@ -8,19 +8,19 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;
 
-public interface BioSampleRepository extends PagingAndSortingRepository<BioSample, String> {
+public interface OrganismRepository extends PagingAndSortingRepository<Organism, String> {
 
-    Page<BioSample> findAll(Pageable pageable);
+    Page<Organism> findAll(Pageable pageable);
 
-    BioSample findBioSampleByOrganism(String organism);
+    Organism findBioSampleByOrganism(String organism);
 
     @Query("{\"bool\": {\"must\": [{\"match\": {\"status\": \"?0\"}}]}}")
-    List<BioSample> findByStatusUsingCustomQuery(String status);
+    List<Organism> findByStatusUsingCustomQuery(String status);
 
     @Query("{\"match\": {\"description\": {\"query\": \"?0\"}}}")
-    List<BioSample> findByDescription(String description);
+    List<Organism> findByDescription(String description);
 
-    BioSample save(BioSample bioSample);
+    Organism save(Organism organism);
 
-    BioSample findBioSampleByAccession(String accession);
+    Organism findBioSampleByAccession(String accession);
 }

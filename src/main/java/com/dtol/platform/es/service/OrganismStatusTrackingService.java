@@ -1,12 +1,12 @@
 package com.dtol.platform.es.service;
 
-import com.dtol.platform.es.mapping.BioSampleStatusTracking;
+import com.dtol.platform.es.mapping.OrganismStatusTracking;
 
 import java.util.List;
 
-public interface BioSampleStatusTrackingService {
+public interface OrganismStatusTrackingService {
 
-    public List<BioSampleStatusTracking> findAll(int page, int size);
+    public List<OrganismStatusTracking> findAll(int page, int size);
 
     public long getBiosampleStatusTrackingCount();
 }

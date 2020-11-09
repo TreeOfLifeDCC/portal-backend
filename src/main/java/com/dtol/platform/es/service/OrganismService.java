@@ -1,18 +1,18 @@
 package com.dtol.platform.es.service;
 
-import com.dtol.platform.es.mapping.BioSample;
+import com.dtol.platform.es.mapping.Organism;
 
 import java.util.List;
 
-public interface BioSampleService {
+public interface OrganismService {
 
-    public List<BioSample> findAll(int page, int size);
+    public List<Organism> findAll(int page, int size);
 
-    public BioSample findBioSampleByAccession(String accession);
+    public Organism findBioSampleByAccession(String accession);
 
-    public BioSample findBioSampleByOrganism(String organism);
+    public Organism findBioSampleByOrganism(String organism);
 
-    public String saveBioSample(BioSample bioSample);
+    public String saveBioSample(Organism organism);
 
     public long getBiosampleCount();
 }

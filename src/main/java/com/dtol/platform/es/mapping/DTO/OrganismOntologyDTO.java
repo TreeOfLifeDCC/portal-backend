@@ -5,7 +5,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.List;
 
-public class BioSampleOntologyDTO {
+public class OrganismOntologyDTO {
     @Field(type = FieldType.Keyword)
     String text;
     @Field(type = FieldType.Keyword)

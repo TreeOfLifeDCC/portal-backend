@@ -1,8 +1,8 @@
 package com.dtol.platform.es.service.Impl;
 
-import com.dtol.platform.es.mapping.BioSample;
-import com.dtol.platform.es.repository.BioSampleRepository;
-import com.dtol.platform.es.service.BioSampleService;
+import com.dtol.platform.es.mapping.Organism;
+import com.dtol.platform.es.repository.OrganismRepository;
+import com.dtol.platform.es.service.OrganismService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,33 +20,33 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 @Service
 @Transactional
-public class BioSampleServiceImpl implements BioSampleService {
+public class OrganismServiceImpl implements OrganismService {
 
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
     @Autowired
-    BioSampleRepository bioSampleRepository;
+    OrganismRepository organismRepository;
 
     @Override
-    public List<BioSample> findAll(int page, int size) {
+    public List<Organism> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<BioSample> pageObj = bioSampleRepository.findAll(pageable);
+        Page<Organism> pageObj = organismRepository.findAll(pageable);
         return pageObj.toList();
     }
 
-    public BioSample findBioSampleByAccession(String accession) {
-        BioSample bioSample = bioSampleRepository.findBioSampleByAccession(accession);
+    public Organism findBioSampleByAccession(String accession) {
+        Organism organism = organismRepository.findBioSampleByAccession(accession);
+        return organism;
+    }
+
+    public Organism findBioSampleByOrganism(String organism) {
+        Organism bioSample = organismRepository.findBioSampleByOrganism(organism);
         return bioSample;
     }
 
-    public BioSample findBioSampleByOrganism(String organism) {
-        BioSample bioSample = bioSampleRepository.findBioSampleByOrganism(organism);
-        return bioSample;
-    }
-
-    public String saveBioSample(BioSample bioSample) {
-        BioSample bs = bioSampleRepository.save(bioSample);
+    public String saveBioSample(Organism organism) {
+        Organism bs = organismRepository.save(organism);
         return bs.getAccession();
     }
 

@@ -7,7 +7,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.time.LocalDate;
 import java.util.List;
 
-public class BioSampleExperimentDTO {
+public class OrganismExperimentDTO {
     @Field(type = FieldType.Keyword)
     private String study_accession;
     @Field(type = FieldType.Keyword)

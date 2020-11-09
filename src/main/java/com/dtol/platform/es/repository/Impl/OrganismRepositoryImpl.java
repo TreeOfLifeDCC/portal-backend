@@ -1,7 +1,7 @@
 package com.dtol.platform.es.repository.Impl;
 
-import com.dtol.platform.es.mapping.BioSample;
-import com.dtol.platform.es.repository.BioSampleRepository;
+import com.dtol.platform.es.mapping.Organism;
+import com.dtol.platform.es.repository.OrganismRepository;
 import org.elasticsearch.index.query.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -15,51 +15,51 @@ import java.util.UUID;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 
 @Repository
-public abstract class BioSampleRepositoryImpl implements BioSampleRepository {
+public abstract class OrganismRepositoryImpl implements OrganismRepository {
 
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
     @Override
-    public BioSample save(BioSample bioSample) {
-        IndexCoordinates indexCoordinates = elasticsearchOperations.getIndexCoordinatesFor(BioSample.class);
+    public Organism save(Organism organism) {
+        IndexCoordinates indexCoordinates = elasticsearchOperations.getIndexCoordinatesFor(Organism.class);
         IndexQuery indexQuery = new IndexQueryBuilder()
                 .withId(UUID.randomUUID().toString())
-                .withObject(bioSample)
+                .withObject(organism)
                 .build();
         String documentId = elasticsearchOperations.index(indexQuery, indexCoordinates);
-        return bioSample;
+        return organism;
     }
 
     @Override
-    public BioSample findBioSampleByAccession(String accession) {
+    public Organism findBioSampleByAccession(String accession) {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchQuery("accession",accession).operator(Operator.AND))
                 .build();
-        SearchHits<BioSample> bioSample = elasticsearchOperations
-                .search(searchQuery, BioSample.class, IndexCoordinates.of("dtol"));
+        SearchHits<Organism> bioSample = elasticsearchOperations
+                .search(searchQuery, Organism.class, IndexCoordinates.of("dtol"));
 
         if(bioSample.getTotalHits() > 0) {
             return bioSample.getSearchHit(0).getContent();
         }
         else {
-            return new BioSample();
+            return new Organism();
         }
     }
 
     @Override
-    public BioSample findBioSampleByOrganism(String organism) {
+    public Organism findBioSampleByOrganism(String organism) {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchQuery("organism",organism).operator(Operator.AND))
                 .build();
-        SearchHits<BioSample> bioSample = elasticsearchOperations
-                .search(searchQuery, BioSample.class, IndexCoordinates.of("dtol"));
+        SearchHits<Organism> bioSample = elasticsearchOperations
+                .search(searchQuery, Organism.class, IndexCoordinates.of("dtol"));
 
         if(bioSample.getTotalHits() > 0) {
             return bioSample.getSearchHit(0).getContent();
         }
         else {
-            return new BioSample();
+            return new Organism();
         }
     }
 }

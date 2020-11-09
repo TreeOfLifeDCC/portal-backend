@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 
 @Document(indexName = "statuses", createIndex = false, replicas = 2, shards = 1)
-public class BioSampleStatusTracking {
+public class OrganismStatusTracking {
 
     @Id
     private String Id;
