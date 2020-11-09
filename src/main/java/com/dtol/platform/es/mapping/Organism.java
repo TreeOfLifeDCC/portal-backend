@@ -7,11 +7,10 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Document(indexName = "organisms", createIndex = false, replicas = 2, shards = 1)
-public class BioSample {
+public class Organism {
 
     @Id
     private String Id;
@@ -35,7 +34,7 @@ public class BioSample {
     private String sex;
 
     @Field(name = "organism", type = FieldType.Nested)
-    private List<BioSampleOntologyDTO> organism;
+    private OrganismOntologyDTO organism;
 
     @Field(name = "commonName", type = FieldType.Text)
     private String commonName;
@@ -65,19 +64,19 @@ public class BioSample {
     private String geographicLocationRegionAndLocality;
 
     @Field(name = "geographicLocationLatitude", type = FieldType.Nested)
-    private List<BioSampleGeographicLocationDTO> geographicLocationLatitude;
+    private OrganismGeographicLocationDTO geographicLocationLatitude;
 
     @Field(name = "geographicLocationLongitude", type = FieldType.Nested)
-    private List<BioSampleGeographicLocationDTO> geographicLocationLongitude;
+    private OrganismGeographicLocationDTO geographicLocationLongitude;
 
     @Field(name = "habitat", type = FieldType.Text)
     private String habitat;
 
     @Field(name = "geographicLocationDepth", type = FieldType.Nested)
-    private List<BioSampleGeographicLocationDTO> geographicLocationDepth;
+    private OrganismGeographicLocationDTO geographicLocationDepth;
 
     @Field(name = "geographicLocationElevation", type = FieldType.Nested)
-    private List<BioSampleGeographicLocationDTO> geographicLocationElevation;
+    private OrganismGeographicLocationDTO geographicLocationElevation;
 
     @Field(name = "identifiedBy", type = FieldType.Text)
     private String identifiedBy;
@@ -92,16 +91,16 @@ public class BioSample {
     private String projectName;
 
     @Field(name = "customFields", type = FieldType.Nested)
-    private List<BioSampleCustomFieldsDTO> customFields;
+    private List<OrganismCustomFieldsDTO> customFields;
 
     @Field(name = "experiment", type = FieldType.Nested)
-    private List<BioSampleExperimentDTO> experiment;
+    private List<OrganismExperimentDTO> experiment;
 
     @Field(name = "trackingSystem", type = FieldType.Text)
     private String trackingSystem;
 
     @Field(name = "assemblies", type = FieldType.Nested)
-    private List<BioSampleAssemblyDTO> assemblies;
+    private List<OrganismAssemblyDTO> assemblies;
 
     @Field(name = "etag", type = FieldType.Keyword)
     private String etag;
@@ -113,7 +112,7 @@ public class BioSample {
     private String sampleDerivedFrom;
 
     @Field(name = "specimens", type = FieldType.Nested)
-    private List<BioSampleGeographicLocationDTO> specimens;
+    private List<OrganismGeographicLocationDTO> specimens;
 
     public String getId() {
         return Id;
@@ -171,11 +170,11 @@ public class BioSample {
         this.sex = sex;
     }
 
-    public List<BioSampleOntologyDTO> getOrganism() {
+    public OrganismOntologyDTO getOrganism() {
         return organism;
     }
 
-    public void setOrganism(List<BioSampleOntologyDTO> organism) {
+    public void setOrganism(OrganismOntologyDTO organism) {
         this.organism = organism;
     }
 
@@ -251,19 +250,19 @@ public class BioSample {
         this.geographicLocationRegionAndLocality = geographicLocationRegionAndLocality;
     }
 
-    public List<BioSampleGeographicLocationDTO> getGeographicLocationLatitude() {
+    public OrganismGeographicLocationDTO getGeographicLocationLatitude() {
         return geographicLocationLatitude;
     }
 
-    public void setGeographicLocationLatitude(List<BioSampleGeographicLocationDTO> geographicLocationLatitude) {
+    public void setGeographicLocationLatitude(OrganismGeographicLocationDTO geographicLocationLatitude) {
         this.geographicLocationLatitude = geographicLocationLatitude;
     }
 
-    public List<BioSampleGeographicLocationDTO> getGeographicLocationLongitude() {
+    public OrganismGeographicLocationDTO getGeographicLocationLongitude() {
         return geographicLocationLongitude;
     }
 
-    public void setGeographicLocationLongitude(List<BioSampleGeographicLocationDTO> geographicLocationLongitude) {
+    public void setGeographicLocationLongitude(OrganismGeographicLocationDTO geographicLocationLongitude) {
         this.geographicLocationLongitude = geographicLocationLongitude;
     }
 
@@ -275,19 +274,19 @@ public class BioSample {
         this.habitat = habitat;
     }
 
-    public List<BioSampleGeographicLocationDTO> getGeographicLocationDepth() {
+    public OrganismGeographicLocationDTO getGeographicLocationDepth() {
         return geographicLocationDepth;
     }
 
-    public void setGeographicLocationDepth(List<BioSampleGeographicLocationDTO> geographicLocationDepth) {
+    public void setGeographicLocationDepth(OrganismGeographicLocationDTO geographicLocationDepth) {
         this.geographicLocationDepth = geographicLocationDepth;
     }
 
-    public List<BioSampleGeographicLocationDTO> getGeographicLocationElevation() {
+    public OrganismGeographicLocationDTO getGeographicLocationElevation() {
         return geographicLocationElevation;
     }
 
-    public void setGeographicLocationElevation(List<BioSampleGeographicLocationDTO> geographicLocationElevation) {
+    public void setGeographicLocationElevation(OrganismGeographicLocationDTO geographicLocationElevation) {
         this.geographicLocationElevation = geographicLocationElevation;
     }
 
@@ -323,19 +322,19 @@ public class BioSample {
         this.projectName = projectName;
     }
 
-    public List<BioSampleCustomFieldsDTO> getCustomFields() {
+    public List<OrganismCustomFieldsDTO> getCustomFields() {
         return customFields;
     }
 
-    public void setCustomFields(List<BioSampleCustomFieldsDTO> customFields) {
+    public void setCustomFields(List<OrganismCustomFieldsDTO> customFields) {
         this.customFields = customFields;
     }
 
-    public List<BioSampleExperimentDTO> getExperiment() {
+    public List<OrganismExperimentDTO> getExperiment() {
         return experiment;
     }
 
-    public void setExperiment(List<BioSampleExperimentDTO> experiment) {
+    public void setExperiment(List<OrganismExperimentDTO> experiment) {
         this.experiment = experiment;
     }
 
@@ -347,11 +346,11 @@ public class BioSample {
         this.trackingSystem = trackingSystem;
     }
 
-    public List<BioSampleAssemblyDTO> getAssemblies() {
+    public List<OrganismAssemblyDTO> getAssemblies() {
         return assemblies;
     }
 
-    public void setAssemblies(List<BioSampleAssemblyDTO> assemblies) {
+    public void setAssemblies(List<OrganismAssemblyDTO> assemblies) {
         this.assemblies = assemblies;
     }
 
@@ -379,11 +378,11 @@ public class BioSample {
         this.sampleDerivedFrom = sampleDerivedFrom;
     }
 
-    public List<BioSampleGeographicLocationDTO> getSpecimens() {
+    public List<OrganismGeographicLocationDTO> getSpecimens() {
         return specimens;
     }
 
-    public void setSpecimens(List<BioSampleGeographicLocationDTO> specimens) {
+    public void setSpecimens(List<OrganismGeographicLocationDTO> specimens) {
         this.specimens = specimens;
     }
 }
