@@ -19,4 +19,9 @@ public interface OrganismService {
     public String saveBioSample(Organism organism);
 
     public long getBiosampleCount();
+
+    public Map<String, JSONObject> getFilterValues();
+
+    public HashMap<String, Object> findSearchResult(String search, Optional<String> sortColumn, Optional<String> sortOrder);
+
 }

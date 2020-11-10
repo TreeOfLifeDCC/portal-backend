@@ -42,4 +42,16 @@ public class OrganismController {
         return organismService.saveBioSample(organism);
     }
 
+    @RequestMapping(value = "/filters", method = RequestMethod.GET)
+    public Map<String, JSONObject> findBioSampleByOrganism() {
+        return organismService.getFilterValues();
+    }
+
+    @RequestMapping(value = "/search", method = RequestMethod.GET)
+    public HashMap<String, Object> findSearchResult(@RequestParam("filter") String filter,
+                                                    @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
+                                                    @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
+        return organismService.findSearchResult(filter, sortColumn, sortOrder);
+    }
+
 }
