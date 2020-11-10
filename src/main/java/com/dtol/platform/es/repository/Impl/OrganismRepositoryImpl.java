@@ -37,7 +37,7 @@ public abstract class OrganismRepositoryImpl implements OrganismRepository {
                 .withQuery(matchQuery("accession",accession).operator(Operator.AND))
                 .build();
         SearchHits<Organism> bioSample = elasticsearchOperations
-                .search(searchQuery, Organism.class, IndexCoordinates.of("dtol"));
+                .search(searchQuery, Organism.class, IndexCoordinates.of("organism"));
 
         if(bioSample.getTotalHits() > 0) {
             return bioSample.getSearchHit(0).getContent();
@@ -53,7 +53,7 @@ public abstract class OrganismRepositoryImpl implements OrganismRepository {
                 .withQuery(matchQuery("organism",organism).operator(Operator.AND))
                 .build();
         SearchHits<Organism> bioSample = elasticsearchOperations
-                .search(searchQuery, Organism.class, IndexCoordinates.of("dtol"));
+                .search(searchQuery, Organism.class, IndexCoordinates.of("organism"));
 
         if(bioSample.getTotalHits() > 0) {
             return bioSample.getSearchHit(0).getContent();

@@ -165,7 +165,7 @@ public class OrganismServiceImpl implements OrganismService {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(multiMatchQuery(search)
                         .field("accession")
-                        .field("organism")
+                        .field("organism.text")
                         .field("commonName")
                         .field("sex")
                         .field("organismPart")
