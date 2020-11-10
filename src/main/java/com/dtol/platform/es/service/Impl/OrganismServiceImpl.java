@@ -4,11 +4,9 @@ import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.repository.OrganismRepository;
 import com.dtol.platform.es.service.OrganismService;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.json.simple.JSONObject;
-import org.junit.internal.requests.SortingRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,11 +20,13 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.elasticsearch.index.query.QueryBuilders.multiMatchQuery;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 
 @Service
@@ -41,15 +41,22 @@ public class OrganismServiceImpl implements OrganismService {
     @Override
     public List<Organism> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
         Pageable pageable = null;
-        if(sortColumn.isPresent()) {
+        if (sortColumn.isPresent()) {
             if (sortOrder.get().equals("asc")) {
-                pageable = PageRequest.of(page, size,Sort.by(sortColumn.get()+".keyword").ascending());
+                if (sortColumn.get().equals("organism")) {
+                    pageable = PageRequest.of(page, size, Sort.by("organism.text.keyword").ascending());
+                } else {
+                    pageable = PageRequest.of(page, size, Sort.by(sortColumn.get() + ".keyword").ascending());
+                }
+
+            } else {
+                if (sortColumn.get().equals("organism")) {
+                    pageable = PageRequest.of(page, size, Sort.by("organism.text.keyword").descending());
+                } else {
+                    pageable = PageRequest.of(page, size, Sort.by(sortColumn.get() + ".keyword").descending());
+                }
             }
-            else {
-                pageable = PageRequest.of(page, size,Sort.by(sortColumn.get()+".keyword").descending());
-            }
-        }
-        else {
+        } else {
             pageable = PageRequest.of(page, size);
         }
 
