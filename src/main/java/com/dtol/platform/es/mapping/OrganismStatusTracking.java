@@ -1,12 +1,10 @@
 package com.dtol.platform.es.mapping;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-
-import java.time.LocalDate;
 
 
 @Document(indexName = "statuses", createIndex = false, replicas = 2, shards = 1)

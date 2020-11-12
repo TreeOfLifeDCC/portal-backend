@@ -37,21 +37,30 @@ public class OrganismController {
         return organismService.findBioSampleByAccession(accession);
     }
 
-    @RequestMapping(value = "/sample", method = RequestMethod.POST)
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
     public String saveBioSample(@RequestBody Organism organism) {
         return organismService.saveBioSample(organism);
     }
 
     @RequestMapping(value = "/filters", method = RequestMethod.GET)
-    public Map<String, JSONObject> findBioSampleByOrganism() {
-        return organismService.getFilterValues();
+    public Map<String, List<JSONObject>> getFilters() {
+        return organismService.getFilters();
     }
 
     @RequestMapping(value = "/search", method = RequestMethod.GET)
-    public HashMap<String, Object> findSearchResult(@RequestParam("filter") String filter,
-                                                    @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
-                                                    @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
+    public HashMap<String, Object> findSearchResults(@RequestParam("filter") String filter,
+                                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
+                                                     @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
         return organismService.findSearchResult(filter, sortColumn, sortOrder);
+    }
+
+    @RequestMapping(value = "/filter/results", method = RequestMethod.POST)
+    public String findFilterResults(@RequestBody String filter,
+                                    @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
+                                    @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
+                                    @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
+                                    @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
+        return organismService.findFilterResults(filter, from, size, sortColumn, sortOrder);
     }
 
 }

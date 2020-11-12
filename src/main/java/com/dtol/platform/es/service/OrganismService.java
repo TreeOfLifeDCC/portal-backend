@@ -14,14 +14,13 @@ public interface OrganismService {
 
     public Organism findBioSampleByAccession(String accession);
 
-    public Organism findBioSampleByOrganism(String organism);
-
     public String saveBioSample(Organism organism);
 
     public long getBiosampleCount();
 
-    public Map<String, JSONObject> getFilterValues();
+    public Map<String, List<JSONObject>> getFilters();
 
     public HashMap<String, Object> findSearchResult(String search, Optional<String> sortColumn, Optional<String> sortOrder);
 
+    public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 }

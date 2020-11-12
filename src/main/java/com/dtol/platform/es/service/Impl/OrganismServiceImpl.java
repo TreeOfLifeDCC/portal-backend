@@ -3,15 +3,23 @@ package com.dtol.platform.es.service.Impl;
 import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.repository.OrganismRepository;
 import com.dtol.platform.es.service.OrganismService;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +32,10 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
@@ -67,21 +78,19 @@ public class OrganismServiceImpl implements OrganismService {
         return pageObj.toList();
     }
 
+    @Override
     public Organism findBioSampleByAccession(String accession) {
         Organism organism = organismRepository.findBioSampleByAccession(accession);
         return organism;
     }
 
-    public Organism findBioSampleByOrganism(String organism) {
-        Organism bioSample = organismRepository.findBioSampleByOrganism(organism);
-        return bioSample;
-    }
-
+    @Override
     public String saveBioSample(Organism organism) {
         Organism bs = organismRepository.save(organism);
         return bs.getAccession();
     }
 
+    @Override
     public long getBiosampleCount() {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchAllQuery())
@@ -92,8 +101,8 @@ public class OrganismServiceImpl implements OrganismService {
     }
 
     @Override
-    public Map<String, JSONObject> getFilterValues() {
-        Map<String, JSONObject> filterMap = new HashMap<String, JSONObject>();
+    public Map<String, List<JSONObject>> getFilters() {
+        Map<String, List<JSONObject>> filterMap = new HashMap<String, List<JSONObject>>();
         JSONObject sexFilterObj = new JSONObject();
         JSONObject trackFilterObj = new JSONObject();
         JSONObject orgFilterObj = new JSONObject();
@@ -111,29 +120,48 @@ public class OrganismServiceImpl implements OrganismService {
         ParsedStringTerms trackFilter = (ParsedStringTerms) results.get("trackingSystem");
         ParsedStringTerms orgFilter = (ParsedStringTerms) results.get("organismPart");
 
-        sexFilterObj.put("count", sexFilter.getBuckets().size());
-        sexFilterObj.put("filter", sexFilter.getBuckets()
+        filterMap.put("sex", sexFilter.getBuckets()
                 .stream()
-                .map(b -> b.getKeyAsString())
+                .map(b -> {
+                    JSONObject filterObj = new JSONObject();
+                    filterObj.put("key", b.getKeyAsString());
+                    filterObj.put("count", b.getDocCount());
+                    return filterObj;
+                })
                 .collect(toList()));
-
-        trackFilterObj.put("count", trackFilter.getBuckets().size());
-        trackFilterObj.put("filter", trackFilter.getBuckets()
+        filterMap.put("trackingSystem", trackFilter.getBuckets()
                 .stream()
-                .map(b -> b.getKeyAsString())
+                .map(b -> {
+                    JSONObject filterObj = new JSONObject();
+                    filterObj.put("key", b.getKeyAsString());
+                    filterObj.put("count", b.getDocCount());
+                    return filterObj;
+                })
                 .collect(toList()));
-
-        orgFilterObj.put("count", orgFilter.getBuckets().size());
-        orgFilterObj.put("filter", orgFilter.getBuckets()
+        filterMap.put("organismPart", orgFilter.getBuckets()
                 .stream()
-                .map(b -> b.getKeyAsString())
+                .map(b -> {
+                    JSONObject filterObj = new JSONObject();
+                    filterObj.put("key", b.getKeyAsString());
+                    filterObj.put("count", b.getDocCount());
+                    return filterObj;
+                })
                 .collect(toList()));
-
-        filterMap.put("sex", sexFilterObj);
-        filterMap.put("trackingSystem", trackFilterObj);
-        filterMap.put("organismPart", orgFilterObj);
 
         return filterMap;
+    }
+
+    @Override
+    public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        List<Organism> results = new ArrayList<Organism>();
+        long count = 0;
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        HashMap<String, Object> response = new HashMap<>();
+        String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn , sortOrder);
+        respString = this.postFilterRequest("http://45.86.170.227:31664", query);
+
+        return respString;
     }
 
     @Override
@@ -148,18 +176,17 @@ public class OrganismServiceImpl implements OrganismService {
                 if (sortColumn.get().equals("organism")) {
                     sort = SortBuilders.fieldSort("organism.text.keyword").order(SortOrder.ASC);
                 } else {
-                    sort = SortBuilders.fieldSort(sortColumn.get()+".keyword").order(SortOrder.ASC);
+                    sort = SortBuilders.fieldSort(sortColumn.get() + ".keyword").order(SortOrder.ASC);
                 }
 
             } else {
                 if (sortColumn.get().equals("organism")) {
                     sort = SortBuilders.fieldSort("organism.text.keyword").order(SortOrder.DESC);
                 } else {
-                    sort = SortBuilders.fieldSort(sortColumn.get()+".keyword").order(SortOrder.DESC);
+                    sort = SortBuilders.fieldSort(sortColumn.get() + ".keyword").order(SortOrder.DESC);
                 }
             }
-        }
-        else {
+        } else {
             sort = SortBuilders.fieldSort("accession.keyword").order(SortOrder.ASC);
         }
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
@@ -169,7 +196,7 @@ public class OrganismServiceImpl implements OrganismService {
                         .field("commonName")
                         .field("sex")
                         .field("organismPart")
-                        .field("trackingStatus")
+                        .field("trackingSystem")
                         .type(MultiMatchQueryBuilder.Type.BEST_FIELDS))
                 .withSort(sort)
                 .build();
@@ -187,4 +214,90 @@ public class OrganismServiceImpl implements OrganismService {
         return response;
     }
 
+    public String filterQueryGenerator(String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        String[] filterArray = filter.split(",");
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sort = new StringBuilder();
+
+        if (sortColumn.isPresent()) {
+            sort.append("'sort' : ");
+            if (sortOrder.get().equals("asc")) {
+                if (sortColumn.get().equals("organism")) {
+                    sort.append("{'organism.text.keyword':'asc'},");
+                } else {
+                    sort.append("{'"+sortColumn.get()+".keyword':'asc'},");
+                }
+
+            } else {
+                if (sortColumn.get().equals("organism")) {
+                    sort.append("{'organism.text.keyword':'desc'},");
+                } else {
+                    sort.append("{'"+sortColumn.get()+".keyword':'desc'},");
+                }
+            }
+        }
+
+        sb.append("{");
+        if(!from.equals("undefined"))
+            sb.append("'from' :" + from + ",'size':" + size + ",");
+        if(sort.length() != 0)
+            sb.append(sort);
+        sb.append("'query' : { 'bool' : { 'should' : [");
+
+        sb.append("{'terms' : {'sex.keyword':[");
+        for (int i = 0; i < filterArray.length; i++) {
+            if (i == 0)
+                sb.append("'" + filterArray[i] + "'");
+            else
+                sb.append(",'" + filterArray[i] + "'");
+        }
+        sb.append("]}},");
+
+        sb.append("{'terms' : {'organismPart.keyword':[");
+        for (int i = 0; i < filterArray.length; i++) {
+            if (i == 0)
+                sb.append("'" + filterArray[i] + "'");
+            else
+                sb.append(",'" + filterArray[i] + "'");
+        }
+        sb.append("]}},");
+
+        sb.append("{'terms' : {'trackingSystem.keyword':[");
+        for (int i = 0; i < filterArray.length; i++) {
+            if (i == 0)
+                sb.append("'" + filterArray[i] + "'");
+            else
+                sb.append(",'" + filterArray[i] + "'");
+        }
+        sb.append("]}}");
+        sb.append("]}}}");
+
+        String query = sb.toString().replaceAll("'", "\"");
+        System.out.println(query);
+        return query;
+    }
+
+    public String postFilterRequest(String baseURL, String body) {
+        CloseableHttpClient client = HttpClients.createDefault();
+        StringEntity entity = null;
+        String resp = "";
+        try {
+            HttpPost httpPost = new HttpPost(baseURL + "/organisms/_search");
+            entity = new StringEntity(body);
+            httpPost.setEntity(entity);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+            CloseableHttpResponse rs = client.execute(httpPost);
+            resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return resp;
+    }
 }
