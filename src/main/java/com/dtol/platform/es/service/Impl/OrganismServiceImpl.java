@@ -11,15 +11,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,15 +30,13 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.elasticsearch.index.query.QueryBuilders.multiMatchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 
 @Service
@@ -158,7 +154,7 @@ public class OrganismServiceImpl implements OrganismService {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn , sortOrder);
+        String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder);
         respString = this.postFilterRequest("http://45.86.170.227:31664", query);
 
         return respString;
@@ -225,22 +221,22 @@ public class OrganismServiceImpl implements OrganismService {
                 if (sortColumn.get().equals("organism")) {
                     sort.append("{'organism.text.keyword':'asc'},");
                 } else {
-                    sort.append("{'"+sortColumn.get()+".keyword':'asc'},");
+                    sort.append("{'" + sortColumn.get() + ".keyword':'asc'},");
                 }
 
             } else {
                 if (sortColumn.get().equals("organism")) {
                     sort.append("{'organism.text.keyword':'desc'},");
                 } else {
-                    sort.append("{'"+sortColumn.get()+".keyword':'desc'},");
+                    sort.append("{'" + sortColumn.get() + ".keyword':'desc'},");
                 }
             }
         }
 
         sb.append("{");
-        if(!from.equals("undefined"))
+        if (!from.equals("undefined"))
             sb.append("'from' :" + from + ",'size':" + size + ",");
-        if(sort.length() != 0)
+        if (sort.length() != 0)
             sb.append(sort);
         sb.append("'query' : { 'bool' : { 'should' : [");
 
@@ -300,4 +296,20 @@ public class OrganismServiceImpl implements OrganismService {
         }
         return resp;
     }
+
+    @Override
+    public Organism findBioSampleByOrganismByText(String organism) {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(matchQuery("organism.text", organism).operator(Operator.AND))
+                .build();
+        SearchHits<Organism> bioSample = elasticsearchOperations
+                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms"));
+
+        if (bioSample.getTotalHits() > 0) {
+            return bioSample.getSearchHit(0).getContent();
+        } else {
+            return new Organism();
+        }
+    }
+
 }

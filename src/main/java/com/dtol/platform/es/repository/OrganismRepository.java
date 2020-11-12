@@ -12,4 +12,5 @@ public interface OrganismRepository extends PagingAndSortingRepository<Organism,
     Organism save(Organism organism);
 
     Organism findBioSampleByAccession(String accession);
+
 }
