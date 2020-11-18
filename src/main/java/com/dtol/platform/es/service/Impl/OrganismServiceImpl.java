@@ -105,9 +105,9 @@ public class OrganismServiceImpl implements OrganismService {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchAllQuery())
                 .withSearchType(SearchType.DEFAULT)
-                .addAggregation(terms("sex").field("sex.keyword"))
-                .addAggregation(terms("trackingSystem").field("trackingSystem.keyword"))
-                .addAggregation(terms("organismPart").field("organismPart.keyword"))
+                .addAggregation(terms("sex").field("sex.keyword").size(100))
+                .addAggregation(terms("trackingSystem").field("trackingSystem.keyword").size(100))
+                .addAggregation(terms("organismPart").field("organismPart.keyword").size(100))
                 .build();
         SearchHits<Organism> searchHits = elasticsearchOperations.search(searchQuery, Organism.class,
                 IndexCoordinates.of("organisms"));
