@@ -12,6 +12,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -185,15 +186,16 @@ public class OrganismServiceImpl implements OrganismService {
         } else {
             sort = SortBuilders.fieldSort("accession.keyword").order(SortOrder.ASC);
         }
+        QueryBuilder qb = multiMatchQuery(search)
+                .field("accession")
+                .field("organism.text")
+                .field("commonName")
+                .field("sex")
+                .field("organismPart")
+                .field("trackingSystem")
+                .type(MultiMatchQueryBuilder.Type.BEST_FIELDS);
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withQuery(multiMatchQuery(search)
-                        .field("accession")
-                        .field("organism.text")
-                        .field("commonName")
-                        .field("sex")
-                        .field("organismPart")
-                        .field("trackingSystem")
-                        .type(MultiMatchQueryBuilder.Type.BEST_FIELDS))
+                .withQuery(qb)
                 .withSort(sort)
                 .build();
         SearchHits<Organism> organism = elasticsearchOperations
@@ -210,11 +212,23 @@ public class OrganismServiceImpl implements OrganismService {
         return response;
     }
 
-    public String filterQueryGenerator(String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        String[] filterArray = filter.split(",");
-        StringBuilder sb = new StringBuilder();
-        StringBuilder sort = new StringBuilder();
+    @Override
+    public Organism findBioSampleByOrganismByText(String organism) {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(matchQuery("organism.text", organism).operator(Operator.AND))
+                .build();
+        SearchHits<Organism> bioSample = elasticsearchOperations
+                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms"));
 
+        if (bioSample.getTotalHits() > 0) {
+            return bioSample.getSearchHit(0).getContent();
+        } else {
+            return new Organism();
+        }
+    }
+
+    private StringBuilder getSortQuery(Optional<String> sortColumn, Optional<String> sortOrder) {
+        StringBuilder sort = new StringBuilder();
         if (sortColumn.isPresent()) {
             sort.append("'sort' : ");
             if (sortOrder.get().equals("asc")) {
@@ -223,7 +237,6 @@ public class OrganismServiceImpl implements OrganismService {
                 } else {
                     sort.append("{'" + sortColumn.get() + ".keyword':'asc'},");
                 }
-
             } else {
                 if (sortColumn.get().equals("organism")) {
                     sort.append("{'organism.text.keyword':'desc'},");
@@ -232,6 +245,14 @@ public class OrganismServiceImpl implements OrganismService {
                 }
             }
         }
+
+        return sort;
+    }
+
+    private String filterQueryGenerator(String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        String[] filterArray = filter.split(",");
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
 
         sb.append("{");
         if (!from.equals("undefined"))
@@ -269,11 +290,10 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("]}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        System.out.println(query);
         return query;
     }
 
-    public String postFilterRequest(String baseURL, String body) {
+    private String postFilterRequest(String baseURL, String body) {
         CloseableHttpClient client = HttpClients.createDefault();
         StringEntity entity = null;
         String resp = "";
@@ -295,21 +315,6 @@ public class OrganismServiceImpl implements OrganismService {
             }
         }
         return resp;
-    }
-
-    @Override
-    public Organism findBioSampleByOrganismByText(String organism) {
-        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withQuery(matchQuery("organism.text", organism).operator(Operator.AND))
-                .build();
-        SearchHits<Organism> bioSample = elasticsearchOperations
-                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms"));
-
-        if (bioSample.getTotalHits() > 0) {
-            return bioSample.getSearchHit(0).getContent();
-        } else {
-            return new Organism();
-        }
     }
 
 }
