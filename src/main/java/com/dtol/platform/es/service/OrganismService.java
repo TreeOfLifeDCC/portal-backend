@@ -20,7 +20,7 @@ public interface OrganismService {
 
     public Map<String, List<JSONObject>> getFilters();
 
-    public HashMap<String, Object> findSearchResult(String search, Optional<String> sortColumn, Optional<String> sortOrder);
+    public String findSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 
     public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 

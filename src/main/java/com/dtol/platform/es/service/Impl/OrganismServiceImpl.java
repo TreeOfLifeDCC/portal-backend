@@ -20,6 +20,7 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +47,8 @@ public class OrganismServiceImpl implements OrganismService {
 
     @Autowired
     OrganismRepository organismRepository;
+    @Value("${ES_CONNECTION_URL}")
+    String esConnectionURL;
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
@@ -151,65 +154,25 @@ public class OrganismServiceImpl implements OrganismService {
     @Override
     public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
         List<Organism> results = new ArrayList<Organism>();
-        long count = 0;
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postFilterRequest("http://45.86.170.227:31664", query);
+        respString = this.postRequest("http://"+esConnectionURL + "/organisms/_search", query);
 
         return respString;
     }
 
     @Override
-    public HashMap<String, Object> findSearchResult(String search, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public String findSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
         List<Organism> results = new ArrayList<Organism>();
-        long count = 0;
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        FieldSortBuilder sort = null;
+        String query = this.searchQueryGenerator(search, from.get(), size.get(), sortColumn, sortOrder);
+        respString = this.postRequest("http://"+esConnectionURL + "/organisms/_search", query);
 
-        if (sortColumn.isPresent()) {
-            if (sortOrder.get().equals("asc")) {
-                if (sortColumn.get().equals("organism")) {
-                    sort = SortBuilders.fieldSort("organism.text.keyword").order(SortOrder.ASC);
-                } else {
-                    sort = SortBuilders.fieldSort(sortColumn.get() + ".keyword").order(SortOrder.ASC);
-                }
-
-            } else {
-                if (sortColumn.get().equals("organism")) {
-                    sort = SortBuilders.fieldSort("organism.text.keyword").order(SortOrder.DESC);
-                } else {
-                    sort = SortBuilders.fieldSort(sortColumn.get() + ".keyword").order(SortOrder.DESC);
-                }
-            }
-        } else {
-            sort = SortBuilders.fieldSort("accession.keyword").order(SortOrder.ASC);
-        }
-        QueryBuilder qb = multiMatchQuery(search)
-                .field("accession")
-                .field("organism.text")
-                .field("commonName")
-                .field("sex")
-                .field("organismPart")
-                .field("trackingSystem")
-                .type(MultiMatchQueryBuilder.Type.BEST_FIELDS);
-        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withQuery(qb)
-                .withSort(sort)
-                .build();
-        SearchHits<Organism> organism = elasticsearchOperations
-                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms"));
-
-        if (organism.getTotalHits() > 0) {
-            count = organism.getTotalHits();
-            for (int i = 0; i < count; i++) {
-                results.add(organism.getSearchHit(i).getContent());
-            }
-        }
-        response.put("count", count);
-        response.put("biosamples", results);
-        return response;
+        return respString;
     }
 
     @Override
@@ -255,7 +218,7 @@ public class OrganismServiceImpl implements OrganismService {
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
 
         sb.append("{");
-        if (!from.equals("undefined"))
+        if (!from.equals("undefined") && !size.equals("undefined"))
             sb.append("'from' :" + from + ",'size':" + size + ",");
         if (sort.length() != 0)
             sb.append(sort);
@@ -293,12 +256,36 @@ public class OrganismServiceImpl implements OrganismService {
         return query;
     }
 
-    private String postFilterRequest(String baseURL, String body) {
+    private String searchQueryGenerator(String search, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
+
+        sb.append("{");
+        if (from.equals("undefined") && size.equals("undefined")) {
+            sb.append("'from' :" + 0 + ",'size':" + 20 + ",");
+        }
+        else {
+            sb.append("'from' :" + from + ",'size':" + size + ",");
+        }
+        if (sort.length() != 0)
+            sb.append(sort);
+        sb.append("'query': {");
+        sb.append("'multi_match': {");
+        sb.append("'query' : '"+search+"',");
+        sb.append("'fields' : ['accession','commonName','organism.text','organismPart','sex','trackingSystem'],");
+        sb.append("'type': 'best_fields',");
+        sb.append("'operator': 'OR'");
+        sb.append("}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        return query;
+    }
+
+    private String postRequest(String baseURL, String body) {
         CloseableHttpClient client = HttpClients.createDefault();
         StringEntity entity = null;
         String resp = "";
         try {
-            HttpPost httpPost = new HttpPost(baseURL + "/organisms/_search");
+            HttpPost httpPost = new HttpPost(baseURL);
             entity = new StringEntity(body);
             httpPost.setEntity(entity);
             httpPost.setHeader("Accept", "application/json");
