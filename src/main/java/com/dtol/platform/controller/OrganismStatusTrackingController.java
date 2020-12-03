@@ -1,5 +1,6 @@
 package com.dtol.platform.controller;
 
+import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.OrganismStatusTracking;
 import com.dtol.platform.es.service.OrganismStatusTrackingService;
 import org.json.simple.JSONObject;
@@ -51,5 +52,14 @@ public class OrganismStatusTrackingController {
                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
                                     @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
         return organismStatusTrackingService.findFilterResults(filter, from, size, sortColumn, sortOrder);
+    }
+
+    @RequestMapping(value = "/organism", method = RequestMethod.GET)
+    public String findBioSampleByOrganism(@RequestParam("name") String name,
+                                            @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
+                                            @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
+                                            @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
+                                            @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
+        return organismStatusTrackingService.findBioSampleByOrganismByText(name, from, size, sortColumn, sortOrder);
     }
 }

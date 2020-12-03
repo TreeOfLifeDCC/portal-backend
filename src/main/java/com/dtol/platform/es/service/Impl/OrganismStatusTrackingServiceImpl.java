@@ -169,6 +169,19 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         return respString;
     }
 
+    @Override
+    public String findBioSampleByOrganismByText(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        List<Organism> results = new ArrayList<Organism>();
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        HashMap<String, Object> response = new HashMap<>();
+        String query = this.getOrganismByText(search, from.get(), size.get(), sortColumn, sortOrder);
+        System.out.println(query);
+        respString = this.postRequest("http://" + esConnectionURL + "/organisms/_search", query);
+
+        return respString;
+    }
+
     private StringBuilder getSortQuery(Optional<String> sortColumn, Optional<String> sortOrder) {
         StringBuilder sort = new StringBuilder();
         if (sortColumn.isPresent()) {
@@ -280,5 +293,26 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         }
         return resp;
     }
+
+    private String getOrganismByText(String search, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
+
+        sb.append("{");
+        if (from.equals("undefined") && size.equals("undefined")) {
+            sb.append("'from' :" + 0 + ",'size':" + 20 + ",");
+        } else {
+            sb.append("'from' :" + from + ",'size':" + size + ",");
+        }
+        if (sort.length() != 0)
+            sb.append(sort);
+        sb.append("'query': {");
+        sb.append("'match': {");
+        sb.append("'organism.text' : '" + search + "'");
+        sb.append("}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        return query;
+    }
+
 
 }
