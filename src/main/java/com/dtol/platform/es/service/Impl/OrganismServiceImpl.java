@@ -289,4 +289,19 @@ public class OrganismServiceImpl implements OrganismService {
         return resp;
     }
 
+    @Override
+    public Organism findBioSampleByOrganismByText(String organism) {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(matchQuery("organism.text", organism).operator(Operator.AND))
+                .build();
+        SearchHits<Organism> bioSample = elasticsearchOperations
+                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms"));
+
+        if (bioSample.getTotalHits() > 0) {
+            return bioSample.getSearchHit(0).getContent();
+        } else {
+            return new Organism();
+        }
+    }
+
 }

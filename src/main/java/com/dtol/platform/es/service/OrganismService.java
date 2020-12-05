@@ -24,4 +24,5 @@ public interface OrganismService {
 
     public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 
+    public Organism findBioSampleByOrganismByText(String organism);
 }

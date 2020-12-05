@@ -65,4 +65,9 @@ public class OrganismController {
         return organismService.findFilterResults(filter, from, size, sortColumn, sortOrder);
     }
 
+    @RequestMapping(value = "/detail/{organism}", method = RequestMethod.GET)
+    public Organism findBioSampleByOrganism(@PathVariable("organism") String organism) {
+        return organismService.findBioSampleByOrganismByText(organism);
+    }
+
 }
