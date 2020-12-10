@@ -240,4 +240,10 @@ public class RootSampleServiceImpl implements RootSampleService {
                 .count(searchQuery, IndexCoordinates.of("root_samples"));
         return count;
     }
+
+    @Override
+    public RootSample findRootSampleByOrganism(String organism) {
+        RootSample rootSample = rootSampleRepository.findRootSampleByOrganism(organism);
+        return rootSample;
+    }
 }

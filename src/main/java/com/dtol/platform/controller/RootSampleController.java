@@ -33,6 +33,11 @@ public class RootSampleController {
 
     }
 
+    @RequestMapping(value = "/organism/{name}", method = RequestMethod.GET)
+    public RootSample findRootSampleByOrganism(@PathVariable("name") String name) {
+        return rootSampleService.findRootSampleByOrganism(name);
+    }
+
     @RequestMapping(value = "/{accession}", method = RequestMethod.GET)
     public RootSample findRootSampleByAccession(@PathVariable("accession") String accession) {
         return rootSampleService.findRootSampleByAccession(accession);

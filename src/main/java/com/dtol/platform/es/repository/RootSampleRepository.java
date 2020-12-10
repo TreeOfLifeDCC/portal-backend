@@ -11,4 +11,6 @@ public interface RootSampleRepository extends PagingAndSortingRepository<RootSam
     Page<RootSample> findAll(Pageable pageable);
 
     RootSample findRootSampleByAccession(String accession);
+
+    RootSample findRootSampleByOrganism(String organism);
 }

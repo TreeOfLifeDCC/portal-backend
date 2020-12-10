@@ -20,4 +20,6 @@ public interface RootSampleService {
     public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 
     public long getRootSamplesCount();
+
+    public RootSample findRootSampleByOrganism(String organism);
 }
