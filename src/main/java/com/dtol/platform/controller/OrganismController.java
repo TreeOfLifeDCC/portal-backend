@@ -42,29 +42,6 @@ public class OrganismController {
         return organismService.saveBioSample(organism);
     }
 
-    @RequestMapping(value = "/filters", method = RequestMethod.GET)
-    public Map<String, List<JSONObject>> getFilters() {
-        return organismService.getFilters();
-    }
-
-    @RequestMapping(value = "/search", method = RequestMethod.GET)
-    public String findSearchResults(@RequestParam("filter") String filter,
-                                    @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
-                                    @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
-                                    @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
-                                    @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
-        return organismService.findSearchResult(filter, from, size, sortColumn, sortOrder);
-    }
-
-    @RequestMapping(value = "/filter/results", method = RequestMethod.POST)
-    public String findFilterResults(@RequestBody String filter,
-                                    @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
-                                    @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
-                                    @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
-                                    @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
-        return organismService.findFilterResults(filter, from, size, sortColumn, sortOrder);
-    }
-
     @RequestMapping(value = "/detail/{organism}", method = RequestMethod.GET)
     public Organism findBioSampleByOrganism(@PathVariable("organism") String organism) {
         return organismService.findBioSampleByOrganismByText(organism);

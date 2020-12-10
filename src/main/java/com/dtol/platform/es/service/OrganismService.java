@@ -18,11 +18,5 @@ public interface OrganismService {
 
     public long getBiosampleCount();
 
-    public Map<String, List<JSONObject>> getFilters();
-
-    public String findSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
-
-    public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
-
     public Organism findBioSampleByOrganismByText(String organism);
 }
