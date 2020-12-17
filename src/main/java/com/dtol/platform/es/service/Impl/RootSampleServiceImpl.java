@@ -13,7 +13,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -27,6 +30,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -93,7 +97,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -102,7 +106,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -112,13 +116,11 @@ public class RootSampleServiceImpl implements RootSampleService {
 
     @Override
     public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        List<Organism> results = new ArrayList<Organism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder);
         respString = this.postRequest("http://"+esConnectionURL + "/root_samples/_search", query);
-
         return respString;
     }
 
@@ -177,7 +179,14 @@ public class RootSampleServiceImpl implements RootSampleService {
                 sb.append(",'" + filterArray[i] + "'");
         }
         sb.append("]}}");
-        sb.append("]}}}");
+        sb.append("]}},");
+
+        sb.append("'aggregations': {");
+        sb.append("'sex': {'terms': {'field': 'sex.keyword'}},");
+        sb.append("'trackingSystem': {'terms': {'field': 'trackingSystem.keyword'}}");
+        sb.append("}");
+
+        sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"");
         return query;

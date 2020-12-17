@@ -3,8 +3,6 @@ package com.dtol.platform.es.mapping.DTO;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.util.List;
-
 public class RootSampleRecordsDTO {
 
     @Field(type = FieldType.Keyword)

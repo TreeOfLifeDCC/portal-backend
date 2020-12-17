@@ -91,7 +91,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", "Biosamples - "+b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -100,7 +100,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", "Raw data - "+b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -109,7 +109,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", "Mapped reads - "+b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -118,7 +118,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", "Assemblies - "+b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -127,7 +127,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", "Annotation complete - "+b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -136,7 +136,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
                     filterObj.put("key", "Annotation - "+b.getKeyAsString());
-                    filterObj.put("count", b.getDocCount());
+                    filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
                 .collect(toList()));
@@ -242,7 +242,19 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 sb.append("]}},");
             }
         }
-        sb.append("]}}}");
+        sb.append("]}},");
+
+        sb.append("'aggregations': {");
+        sb.append("'biosamples': {'terms': {'field': 'biosamples.keyword'}},");
+        sb.append("'raw_data': {'terms': {'field': 'raw_data.keyword'}},");
+        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads.keyword'}},");
+        sb.append("'assemblies': {'terms': {'field': 'assemblies.keyword'}},");
+        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete.keyword'}},");
+        sb.append("'annotation': {'terms': {'field': 'annotation.keyword'}}");
+        sb.append("}");
+
+        sb.append("}");
+
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]","]");
         return query;
     }

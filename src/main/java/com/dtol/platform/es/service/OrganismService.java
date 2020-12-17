@@ -1,11 +1,8 @@
 package com.dtol.platform.es.service;
 
 import com.dtol.platform.es.mapping.Organism;
-import org.json.simple.JSONObject;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface OrganismService {

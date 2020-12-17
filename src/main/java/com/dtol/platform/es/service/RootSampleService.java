@@ -2,6 +2,7 @@ package com.dtol.platform.es.service;
 
 import com.dtol.platform.es.mapping.RootSample;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
 import java.util.List;
 import java.util.Map;

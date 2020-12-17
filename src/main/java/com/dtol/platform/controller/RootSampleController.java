@@ -1,6 +1,5 @@
 package com.dtol.platform.controller;
 
-import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.RootSample;
 import com.dtol.platform.es.service.RootSampleService;
 import org.json.simple.JSONObject;

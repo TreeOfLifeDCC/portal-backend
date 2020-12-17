@@ -1,6 +1,5 @@
 package com.dtol.platform.controller;
 
-import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.OrganismStatusTracking;
 import com.dtol.platform.es.service.OrganismStatusTrackingService;
 import org.json.simple.JSONObject;
