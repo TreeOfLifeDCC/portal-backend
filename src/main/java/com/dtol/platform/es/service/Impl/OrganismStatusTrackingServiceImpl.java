@@ -277,7 +277,18 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("'fields' : ['organism','commonName','biosamples','raw_data','mapped_reads','assemblies','annotation_complete','annotation'],");
         sb.append("'type': 'best_fields',");
         sb.append("'operator': 'OR'");
-        sb.append("}}}");
+        sb.append("}},");
+
+        sb.append("'aggregations': {");
+        sb.append("'biosamples': {'terms': {'field': 'biosamples.keyword'}},");
+        sb.append("'raw_data': {'terms': {'field': 'raw_data.keyword'}},");
+        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads.keyword'}},");
+        sb.append("'assemblies': {'terms': {'field': 'assemblies.keyword'}},");
+        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete.keyword'}},");
+        sb.append("'annotation': {'terms': {'field': 'annotation.keyword'}}");
+        sb.append("}");
+
+        sb.append("}");
         String query = sb.toString().replaceAll("'", "\"");
         return query;
     }

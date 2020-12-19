@@ -211,7 +211,15 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'fields' : ['accession','organism','commonName','sex','trackingSystem'],");
         sb.append("'type': 'best_fields',");
         sb.append("'operator': 'OR'");
-        sb.append("}}}");
+        sb.append("}},");
+
+        sb.append("'aggregations': {");
+        sb.append("'sex': {'terms': {'field': 'sex.keyword'}},");
+        sb.append("'trackingSystem': {'terms': {'field': 'trackingSystem.keyword'}}");
+        sb.append("}");
+
+        sb.append("}");
+
         String query = sb.toString().replaceAll("'", "\"");
         return query;
     }
