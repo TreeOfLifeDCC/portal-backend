@@ -23,4 +23,12 @@ public interface RootSampleService {
     public long getRootSamplesCount();
 
     public RootSample findRootSampleByOrganism(String organism);
+
+    public String getDistinctRootSamplesByOrganismQuery(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey);
+
+    public String getDistinctRootSamplesCountByOrganismQuery();
+
+    public JSONObject getDistinctRootSamplesByOrganism(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey) throws ParseException;
+
+    public String getDistinctRootSamplesCountByOrganism() throws ParseException;
 }

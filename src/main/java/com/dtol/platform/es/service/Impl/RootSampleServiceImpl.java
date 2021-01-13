@@ -13,7 +13,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -30,7 +29,6 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -120,7 +118,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://"+esConnectionURL + "/root_samples/_search", query);
+        respString = this.postRequest("http://" + esConnectionURL + "/root_samples/_search", query);
         return respString;
     }
 
@@ -131,7 +129,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.searchQueryGenerator(search, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://"+esConnectionURL + "/root_samples/_search", query);
+        respString = this.postRequest("http://" + esConnectionURL + "/root_samples/_search", query);
 
         return respString;
     }
@@ -199,15 +197,14 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("{");
         if (from.equals("undefined") && size.equals("undefined")) {
             sb.append("'from' :" + 0 + ",'size':" + 20 + ",");
-        }
-        else {
+        } else {
             sb.append("'from' :" + from + ",'size':" + size + ",");
         }
         if (sort.length() != 0)
             sb.append(sort);
         sb.append("'query': {");
         sb.append("'multi_match': {");
-        sb.append("'query' : '"+search+"',");
+        sb.append("'query' : '" + search + "',");
         sb.append("'fields' : ['accession','organism','commonName','sex','trackingSystem'],");
         sb.append("'type': 'best_fields',");
         sb.append("'operator': 'OR'");
@@ -262,5 +259,68 @@ public class RootSampleServiceImpl implements RootSampleService {
     public RootSample findRootSampleByOrganism(String organism) {
         RootSample rootSample = rootSampleRepository.findRootSampleByOrganism(organism);
         return rootSample;
+    }
+
+    @Override
+    public String getDistinctRootSamplesByOrganismQuery(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'size':" + 0 + ",");
+        sb.append("'track_total_hits': false,");
+        sb.append("'aggs' : { 'group_by_organism' : { 'composite' : {");
+        sb.append("'size':" + size + ",");
+        sb.append("'sources': [");
+        sb.append("{'organism' : {'terms': {'field': 'organism.keyword',");
+        sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("organism")) ? "'"+sortOrder.get().toString()+"'}}}," : "'asc'}}},"));
+
+        sb.append("{'commonName' : {'terms': {'field': 'commonName.keyword',");
+        sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("commonName")) ? "'"+ sortOrder.get().toString()+"'}}}," : "'asc'}}},"));
+
+        sb.append("{'sex' : {'terms': {'field': 'sex.keyword',");
+        sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("sex")) ? "'"+ sortOrder.get().toString()+"'}}}," : "'asc'}}},"));
+
+        sb.append("{'trackingSystem' : {'terms': {'field': 'trackingSystem.keyword',");
+        sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("trackingSystem")) ? "'"+ sortOrder.get().toString()+"'}}}" : "'asc'}}}"));
+
+        if(afterKey.isPresent())
+            sb.append(",'after':"+afterKey.get().toString());
+        sb.append("]}}}}");
+
+        String query = sb.toString().replaceAll("'", "\"");
+        return query;
+    }
+
+    @Override
+    public String getDistinctRootSamplesCountByOrganismQuery() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'size':" + 0 + ",");
+        sb.append("'aggs' : { 'type_count': { 'cardinality' : { 'field' : 'organism.keyword'");
+        sb.append("}}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        return query;
+    }
+
+    @Override
+    public JSONObject getDistinctRootSamplesByOrganism(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey) throws ParseException {
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        HashMap<String, Object> response = new HashMap<>();
+        String query = this.getDistinctRootSamplesByOrganismQuery(size,sortColumn,sortOrder,afterKey);
+        respString = this.postRequest("http://" + esConnectionURL + "/root_samples/_search", query);
+        JSONObject res = (JSONObject) new JSONParser().parse(respString);
+        return res;
+    }
+
+    @Override
+    public String getDistinctRootSamplesCountByOrganism() throws ParseException {
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        HashMap<String, Object> response = new HashMap<>();
+        String query = this.getDistinctRootSamplesCountByOrganismQuery();
+        respString = this.postRequest("http://" + esConnectionURL + "/root_samples/_search", query);
+        JSONObject resp = (JSONObject) new JSONParser().parse(respString);
+        String count = ((JSONObject) ((JSONObject) resp.get("aggregations")).get("type_count")).get("value").toString();
+        return count;
     }
 }
