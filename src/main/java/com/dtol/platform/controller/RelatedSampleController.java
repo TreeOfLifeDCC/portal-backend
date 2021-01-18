@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/root_samples")
-public class RootSampleController {
+public class RelatedSampleController {
 
     @Autowired
     RootSampleService rootSampleService;
@@ -28,25 +28,12 @@ public class RootSampleController {
                                                                 @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
         HashMap<String, Object> response = new HashMap<>();
         List<RootSample> resp = rootSampleService.findAll(offset, limit, sortColumn, sortOrder);
-        long count = rootSampleService.getRootSamplesCount();
+        long count = rootSampleService.getRelatedOrganismCount();
         response.put("rootSamples", resp);
         response.put("count", count);
         return new ResponseEntity<HashMap<String, Object>>(response, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/all", method = RequestMethod.GET)
-    public ResponseEntity<HashMap<String, Object>> getRootOrganisms(@RequestParam(name = "size", required = false, defaultValue = "20") String size,
-                                                                @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
-                                                                @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder,
-                                                                @RequestParam(value = "afterKey", required = false) Optional<String> afterKey) throws ParseException {
-        HashMap<String, Object> response = new HashMap<>();
-        JSONObject resp = rootSampleService.getDistinctRootSamplesByOrganism(size, sortColumn, sortOrder, afterKey);
-        String count = rootSampleService.getDistinctRootSamplesCountByOrganism();
-        response.put("rootSamples", resp);
-        response.put("count", count);
-        System.out.println(resp);
-        return new ResponseEntity<HashMap<String, Object>>(response, HttpStatus.OK);
-    }
 
     @RequestMapping(value = "/organism/{name}", method = RequestMethod.GET)
     public ResponseEntity<RootSample> findRootSampleByOrganism(@PathVariable("name") String name) {
@@ -62,19 +49,8 @@ public class RootSampleController {
 
     @RequestMapping(value = "/filters", method = RequestMethod.GET)
     public ResponseEntity<Map<String, List<JSONObject>>> getFilters() {
-        Map<String, List<JSONObject>> resp = rootSampleService.getFilters();
+        Map<String, List<JSONObject>> resp = rootSampleService.getRelatedOrganismFilters();
         return new ResponseEntity<Map<String, List<JSONObject>>>(resp, HttpStatus.OK);
-    }
-
-    @RequestMapping(value = "/search", method = RequestMethod.GET)
-    public ResponseEntity<String> findSearchResults(@RequestParam("filter") String filter,
-                                                    @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
-                                                    @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
-                                                    @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
-                                                    @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
-
-        String resp = rootSampleService.findSearchResult(filter, from, size, sortColumn, sortOrder);
-        return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/filter/results", method = RequestMethod.POST)
@@ -83,7 +59,13 @@ public class RootSampleController {
                                                     @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
                                                     @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
-        String resp = rootSampleService.findFilterResults(filter, from, size, sortColumn, sortOrder);
+        String resp = rootSampleService.findRelatedOrganismFilterResults(filter, from, size, sortColumn, sortOrder);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
+    public ResponseEntity<String> saveBioSample(@RequestBody RootSample rootSample) {
+        String resp = rootSampleService.saveRootSample(rootSample);
+        return new ResponseEntity<String> (resp, HttpStatus.OK);
     }
 }
