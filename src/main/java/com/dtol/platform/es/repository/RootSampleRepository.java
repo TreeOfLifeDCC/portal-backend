@@ -1,9 +1,12 @@
 package com.dtol.platform.es.repository;
 
+import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.RootSample;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
+
+import java.util.List;
 
 public interface RootSampleRepository extends PagingAndSortingRepository<RootSample, String> {
 
@@ -11,5 +14,7 @@ public interface RootSampleRepository extends PagingAndSortingRepository<RootSam
 
     RootSample findRootSampleByAccession(String accession);
 
-    RootSample findRootSampleByOrganism(String organism);
+    List<RootSample> findRootSampleByOrganism(String organism);
+
+    RootSample save(RootSample rootSample);
 }

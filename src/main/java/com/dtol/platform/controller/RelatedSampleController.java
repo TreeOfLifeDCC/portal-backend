@@ -2,7 +2,7 @@ package com.dtol.platform.controller;
 
 import com.dtol.platform.es.mapping.RootSample;
 import com.dtol.platform.es.service.RootSampleService;
-import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,9 +36,12 @@ public class RelatedSampleController {
 
 
     @RequestMapping(value = "/organism/{name}", method = RequestMethod.GET)
-    public ResponseEntity<RootSample> findRootSampleByOrganism(@PathVariable("name") String name) {
-        RootSample rs = rootSampleService.findRootSampleByOrganism(name);
-        return new ResponseEntity<RootSample>(rs, HttpStatus.OK);
+    public ResponseEntity<HashMap<String, Object>> findRootSampleByOrganism(@PathVariable("name") String name) {
+        HashMap<String, Object> response = new HashMap<>();
+        List<RootSample> rs = rootSampleService.findRelatedSampleByOrganism(name);
+        response.put("organisms", rs);
+        response.put("count", rs.size());
+        return new ResponseEntity<HashMap<String, Object>>(response, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{accession}", method = RequestMethod.GET)
@@ -48,9 +51,9 @@ public class RelatedSampleController {
     }
 
     @RequestMapping(value = "/filters", method = RequestMethod.GET)
-    public ResponseEntity<Map<String, List<JSONObject>>> getFilters() {
-        Map<String, List<JSONObject>> resp = rootSampleService.getRelatedOrganismFilters();
-        return new ResponseEntity<Map<String, List<JSONObject>>>(resp, HttpStatus.OK);
+    public ResponseEntity<Map<String, JSONArray>> getFilters(@RequestParam(name = "organism") String organism) throws ParseException {
+        Map<String, JSONArray> resp = rootSampleService.getSecondaryOrganismFilters(organism);
+        return new ResponseEntity<Map<String, JSONArray>>(resp, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/filter/results", method = RequestMethod.POST)
@@ -67,5 +70,11 @@ public class RelatedSampleController {
     public ResponseEntity<String> saveBioSample(@RequestBody RootSample rootSample) {
         String resp = rootSampleService.saveRootSample(rootSample);
         return new ResponseEntity<String> (resp, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/organism", method = RequestMethod.GET)
+    public ResponseEntity<JSONArray> findAccessionByOrganism(@RequestParam("organismName") String organismName) throws ParseException {
+        JSONArray rs = rootSampleService.findSampleAccessionByOrganism(organismName);
+        return new ResponseEntity<JSONArray>(rs, HttpStatus.OK);
     }
 }

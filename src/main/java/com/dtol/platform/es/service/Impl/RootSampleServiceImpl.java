@@ -1,7 +1,9 @@
 package com.dtol.platform.es.service.Impl;
 
+import com.dtol.platform.es.mapping.DTO.RootOrganism;
 import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.RootSample;
+import com.dtol.platform.es.repository.RootOrganismRepository;
 import com.dtol.platform.es.repository.RootSampleRepository;
 import com.dtol.platform.es.service.RootSampleService;
 import org.apache.commons.io.IOUtils;
@@ -13,6 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -46,6 +49,8 @@ public class RootSampleServiceImpl implements RootSampleService {
     private ElasticsearchOperations elasticsearchOperations;
     @Autowired
     RootSampleRepository rootSampleRepository;
+    @Autowired
+    RootOrganismRepository rootOrganismRepository;
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
 
@@ -68,37 +73,44 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
+    public List<RootOrganism> findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        Pageable pageable = null;
+        if (sortColumn.isPresent()) {
+            if (sortOrder.get().equals("asc")) {
+                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get() + "").ascending());
+
+            } else {
+                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get() + "").descending());
+            }
+        } else {
+            pageable = PageRequest.of(page, size);
+        }
+
+        Page<RootOrganism> pageObj = rootOrganismRepository.findAll(pageable);
+        return pageObj.toList();
+    }
+
+    @Override
     public RootSample findRootSampleByAccession(String accession) {
         RootSample rootSample = rootSampleRepository.findRootSampleByAccession(accession);
         return rootSample;
     }
 
     @Override
-    public Map<String, List<JSONObject>> getFilters() {
+    public Map<String, List<JSONObject>> getRootOrganismFilters() {
         Map<String, List<JSONObject>> filterMap = new HashMap<String, List<JSONObject>>();
         JSONObject sexFilterObj = new JSONObject();
         JSONObject trackFilterObj = new JSONObject();
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchAllQuery())
                 .withSearchType(SearchType.DEFAULT)
-                .addAggregation(terms("sex").field("sex.keyword").size(100))
-                .addAggregation(terms("trackingSystem").field("trackingSystem.keyword").size(100))
+                .addAggregation(terms("trackingSystem").field("trackingSystem").size(100))
                 .build();
         SearchHits<RootSample> searchHits = elasticsearchOperations.search(searchQuery, RootSample.class,
-                IndexCoordinates.of("root_samples"));
+                IndexCoordinates.of("new_index"));
         Map<String, Aggregation> results = searchHits.getAggregations().asMap();
-        ParsedStringTerms sexFilter = (ParsedStringTerms) results.get("sex");
         ParsedStringTerms trackFilter = (ParsedStringTerms) results.get("trackingSystem");
 
-        filterMap.put("sex", sexFilter.getBuckets()
-                .stream()
-                .map(b -> {
-                    JSONObject filterObj = new JSONObject();
-                    filterObj.put("key", b.getKeyAsString());
-                    filterObj.put("doc_count", b.getDocCount());
-                    return filterObj;
-                })
-                .collect(toList()));
         filterMap.put("trackingSystem", trackFilter.getBuckets()
                 .stream()
                 .map(b -> {
@@ -113,23 +125,67 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public Map<String, JSONArray> getSecondaryOrganismFilters(String organism) throws ParseException {
+        Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
+        List<JSONObject> sexFilterObj = null;
+        List<JSONObject> trackFilterObj = null;
+
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'size':0,");
+        sb.append("'query' : { 'bool' : { 'should' : [");
+        sb.append("{'terms' : {'organism':['");
+        sb.append(organism);
+        sb.append("']}}]}},");
+
+        sb.append("'aggregations':{");
+        sb.append("'filters': { 'nested': { 'path':'records'},");
+        sb.append("'aggs':{");
+        sb.append("'sex_filter':{'terms':{'field':'records.sex', 'size': 2000}},");
+        sb.append("'tracking_status_filter':{'terms':{'field':'records.trackingSystem', 'size': 2000}}");
+        sb.append("}}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
+        JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
+        JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
+        JSONArray trackFilter = (JSONArray) ((JSONObject) aggregations.get("tracking_status_filter")).get("buckets");
+
+        filterMap.put("sex",sexFilter);
+        filterMap.put("trackingSystem",trackFilter);
+
+        return filterMap;
+
+    }
+
+    @Override
+    public String findRootOrganismFilterResults(String organism, String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://" + esConnectionURL + "/root_samples/_search", query);
+        String query = this.getRootOrganismFilterResultQuery(organism, filter, from.get(), size.get(), sortColumn, sortOrder);
+        respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
         return respString;
     }
 
     @Override
-    public String findSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public String findRelatedOrganismFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        HashMap<String, Object> response = new HashMap<>();
+        String query = this.getOrganismFilterQuery(filter, from.get(), size.get(), sortColumn, sortOrder);
+        respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
+        return respString;
+    }
+
+    @Override
+    public String findRootOrganismSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
         List<Organism> results = new ArrayList<Organism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.searchQueryGenerator(search, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://" + esConnectionURL + "/root_samples/_search", query);
+        String query = this.getRootOrganismSearchQuery(search, from.get(), size.get(), sortColumn, sortOrder);
+        respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
 
         return respString;
     }
@@ -139,16 +195,58 @@ public class RootSampleServiceImpl implements RootSampleService {
         if (sortColumn.isPresent()) {
             sort.append("'sort' : ");
             if (sortOrder.get().equals("asc")) {
-                sort.append("{'" + sortColumn.get() + ".keyword':'asc'},");
+                sort.append("{'" + sortColumn.get() + "':'asc'},");
             } else {
-                sort.append("{'" + sortColumn.get() + ".keyword':'desc'},");
+                sort.append("{'" + sortColumn.get() + "':'desc'},");
             }
         }
 
         return sort;
     }
 
-    private String filterQueryGenerator(String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    private String getRootOrganismFilterResultQuery(String organism, String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        String[] filterArray = filter.split(",");
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
+
+        sb.append("{");
+        sb.append("'query' : { 'bool' : { 'should' : [");
+
+        sb.append("{'terms' : {'organism':[");
+        sb.append("'"+organism+"'");
+        sb.append("]}},");
+
+        sb.append("{'terms' : {'records.trackingSystem':[");
+        for (int i = 0; i < filterArray.length; i++) {
+            if (i == 0)
+                sb.append("'" + filterArray[i] + "'");
+            else
+                sb.append(",'" + filterArray[i] + "'");
+        }
+        sb.append("]}},");
+
+        sb.append("{'terms' : {'records.sex':[");
+        for (int i = 0; i < filterArray.length; i++) {
+            if (i == 0)
+                sb.append("'" + filterArray[i] + "'");
+            else
+                sb.append(",'" + filterArray[i] + "'");
+        }
+        sb.append("]}}");
+
+        sb.append("]}},");
+
+        sb.append("'aggregations': {");
+        sb.append("'filters': { 'nested': {'path': 'records'}, 'aggs': {");
+        sb.append("'trackingSystem': {'terms': {'field': 'records.trackingSystem'}},");
+        sb.append("'sex': {'terms': {'field': 'records.sex'}}");
+        sb.append("}}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        System.out.println(query);
+        return query;
+    }
+
+    private String getOrganismFilterQuery(String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
         String[] filterArray = filter.split(",");
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
@@ -160,16 +258,7 @@ public class RootSampleServiceImpl implements RootSampleService {
             sb.append(sort);
         sb.append("'query' : { 'bool' : { 'should' : [");
 
-        sb.append("{'terms' : {'sex.keyword':[");
-        for (int i = 0; i < filterArray.length; i++) {
-            if (i == 0)
-                sb.append("'" + filterArray[i] + "'");
-            else
-                sb.append(",'" + filterArray[i] + "'");
-        }
-        sb.append("]}},");
-
-        sb.append("{'terms' : {'trackingSystem.keyword':[");
+        sb.append("{'terms' : {'trackingSystem':[");
         for (int i = 0; i < filterArray.length; i++) {
             if (i == 0)
                 sb.append("'" + filterArray[i] + "'");
@@ -180,8 +269,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("]}},");
 
         sb.append("'aggregations': {");
-        sb.append("'sex': {'terms': {'field': 'sex.keyword'}},");
-        sb.append("'trackingSystem': {'terms': {'field': 'trackingSystem.keyword'}}");
+        sb.append("'trackingSystem': {'terms': {'field': 'trackingSystem'}}");
         sb.append("}");
 
         sb.append("}");
@@ -190,7 +278,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         return query;
     }
 
-    private String searchQueryGenerator(String search, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    private String getRootOrganismSearchQuery(String search, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
 
@@ -211,8 +299,8 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}},");
 
         sb.append("'aggregations': {");
-        sb.append("'sex': {'terms': {'field': 'sex.keyword'}},");
-        sb.append("'trackingSystem': {'terms': {'field': 'trackingSystem.keyword'}}");
+        sb.append("'sex': {'terms': {'field': 'sex'}},");
+        sb.append("'trackingSystem': {'terms': {'field': 'trackingSystem'}}");
         sb.append("}");
 
         sb.append("}");
@@ -246,18 +334,28 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public long getRootSamplesCount() {
+    public long getRootOrganismCount() {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchAllQuery())
                 .build();
         long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("root_samples"));
+                .count(searchQuery, IndexCoordinates.of("new_index"));
         return count;
     }
 
     @Override
-    public RootSample findRootSampleByOrganism(String organism) {
-        RootSample rootSample = rootSampleRepository.findRootSampleByOrganism(organism);
+    public long getRelatedOrganismCount() {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(matchAllQuery())
+                .build();
+        long count = elasticsearchOperations
+                .count(searchQuery, IndexCoordinates.of("new_index"));
+        return count;
+    }
+
+    @Override
+    public List<RootSample> findRelatedSampleByOrganism(String organism) {
+        List<RootSample> rootSample = rootSampleRepository.findRootSampleByOrganism(organism);
         return rootSample;
     }
 
@@ -323,4 +421,40 @@ public class RootSampleServiceImpl implements RootSampleService {
         String count = ((JSONObject) ((JSONObject) resp.get("aggregations")).get("type_count")).get("value").toString();
         return count;
     }
+
+    @Override
+    public String saveRootSample(RootSample rootSample) {
+        rootSample.setId(rootSample.getOrganism());
+        RootSample bs = rootSampleRepository.save(rootSample);
+        return bs.getId();
+    }
+
+    @Override
+    public RootOrganism findRootSampleByOrganism(String organism) {
+        RootOrganism rootOrganism = rootOrganismRepository.findRootOrganismByOrganism(organism);
+        return rootOrganism;
+    }
+
+    @Override
+    public JSONArray findSampleAccessionByOrganism(String organism) throws ParseException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'size':0,");
+        sb.append("'query' : { 'bool' : { 'should' : [");
+        sb.append("{'terms' : {'organism.keyword':['");
+        sb.append(organism);
+        sb.append("']}}]}},");
+
+        sb.append("'aggs':{");
+        sb.append("'accession':{'terms':{'field':'accession.keyword'}}");
+        sb.append("}}");
+        String query = sb.toString().replaceAll("'", "\"");
+
+        String respString = this.postRequest("http://" + esConnectionURL + "/root_samples/_search", query);
+        JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations"));
+        JSONArray accession = (JSONArray) ((JSONObject) aggregations.get("accession")).get("buckets");
+
+        return accession;
+    }
+
 }

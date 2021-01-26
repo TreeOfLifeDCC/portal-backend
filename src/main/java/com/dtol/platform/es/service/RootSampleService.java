@@ -1,6 +1,9 @@
 package com.dtol.platform.es.service;
 
+import com.dtol.platform.es.mapping.DTO.RootOrganism;
+import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.RootSample;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
@@ -12,17 +15,25 @@ public interface RootSampleService {
 
     public List<RootSample> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
 
+    public List<RootOrganism> findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
+
     public RootSample findRootSampleByAccession(String accession);
 
-    public Map<String, List<JSONObject>> getFilters();
+    public Map<String, List<JSONObject>> getRootOrganismFilters();
 
-    public String findSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
+    public Map<String, JSONArray> getSecondaryOrganismFilters(String organism) throws ParseException;
 
-    public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
+    public String findRootOrganismSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 
-    public long getRootSamplesCount();
+    public String findRootOrganismFilterResults(String organism, String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 
-    public RootSample findRootSampleByOrganism(String organism);
+    public String findRelatedOrganismFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
+
+    public long getRootOrganismCount();
+
+    public long getRelatedOrganismCount();
+
+    public List<RootSample> findRelatedSampleByOrganism(String organism);
 
     public String getDistinctRootSamplesByOrganismQuery(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey);
 
@@ -31,4 +42,11 @@ public interface RootSampleService {
     public JSONObject getDistinctRootSamplesByOrganism(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey) throws ParseException;
 
     public String getDistinctRootSamplesCountByOrganism() throws ParseException;
+
+    public String saveRootSample(RootSample rootSample);
+
+    public RootOrganism findRootSampleByOrganism(String organism);
+
+    public JSONArray findSampleAccessionByOrganism(String organism) throws ParseException;
+
 }
