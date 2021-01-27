@@ -159,17 +159,17 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public String findRootOrganismFilterResults(String organism, String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public String findSecondaryOrganismFilterResults(String organism, String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.getRootOrganismFilterResultQuery(organism, filter, from.get(), size.get(), sortColumn, sortOrder);
+        String query = this.getSecondaryOrganismFilterResultQuery(organism, filter, from.get(), size.get(), sortColumn, sortOrder);
         respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
         return respString;
     }
 
     @Override
-    public String findRelatedOrganismFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public String findRootOrganismFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
@@ -204,7 +204,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         return sort;
     }
 
-    private String getRootOrganismFilterResultQuery(String organism, String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    private String getSecondaryOrganismFilterResultQuery(String organism, String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
         String[] filterArray = filter.split(",");
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
@@ -242,7 +242,6 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'sex': {'terms': {'field': 'records.sex'}}");
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        System.out.println(query);
         return query;
     }
 
@@ -291,11 +290,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         if (sort.length() != 0)
             sb.append(sort);
         sb.append("'query': {");
-        sb.append("'multi_match': {");
-        sb.append("'query' : '" + search + "',");
-        sb.append("'fields' : ['accession','organism','commonName','sex','trackingSystem'],");
-        sb.append("'type': 'best_fields',");
-        sb.append("'operator': 'OR'");
+        sb.append("'query_string': {");
+        sb.append("'query' : '*" + search + "*',");
+        sb.append("'fields' : ['organism.normalize','commonName.normalize', 'trackingSystem.normalize']");
         sb.append("}},");
 
         sb.append("'aggregations': {");

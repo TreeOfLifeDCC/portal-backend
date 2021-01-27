@@ -60,7 +60,7 @@ public class RootOrganismController {
                                                     @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
                                                     @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
-        String resp = rootSampleService.findRootOrganismFilterResults(organism, filter, from, size, sortColumn, sortOrder);
+        String resp = rootSampleService.findSecondaryOrganismFilterResults(organism, filter, from, size, sortColumn, sortOrder);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 
@@ -70,7 +70,7 @@ public class RootOrganismController {
                                                     @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
                                                     @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
-        String resp = rootSampleService.findRelatedOrganismFilterResults(filter, from, size, sortColumn, sortOrder);
+        String resp = rootSampleService.findRootOrganismFilterResults(filter, from, size, sortColumn, sortOrder);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 
