@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface OrganismStatusTrackingService {
 
-    public List<OrganismStatusTracking> findAll(int page, int size);
+    public List<OrganismStatusTracking> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
 
     public long getBiosampleStatusTrackingCount();
 

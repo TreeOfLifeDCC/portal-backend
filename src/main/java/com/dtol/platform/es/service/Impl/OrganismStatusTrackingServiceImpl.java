@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -47,8 +48,19 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     private ElasticsearchOperations elasticsearchOperations;
 
     @Override
-    public List<OrganismStatusTracking> findAll(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public List<OrganismStatusTracking> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        Pageable pageable = null;
+        if (sortColumn.isPresent()) {
+            if (sortOrder.get().equals("asc")) {
+                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).ascending());
+
+            } else {
+                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).descending());
+            }
+        } else {
+            pageable = PageRequest.of(page, size);
+        }
+        System.out.println(pageable.toString());
         Page<OrganismStatusTracking> pageObj = organismStatusTrackingRepository.findAll(pageable);
         return pageObj.toList();
     }
@@ -163,7 +175,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.searchQueryGenerator(search, from.get(), size.get(), sortColumn, sortOrder);
-        System.out.println(query);
         respString = this.postRequest("http://" + esConnectionURL + "/statuses/_search", query);
 
         return respString;
@@ -176,7 +187,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getOrganismByText(search, from.get(), size.get(), sortColumn, sortOrder);
-        System.out.println(query);
         respString = this.postRequest("http://" + esConnectionURL + "/organisms/_search", query);
 
         return respString;
@@ -256,6 +266,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]","]");
+        System.out.println(query);
         return query;
     }
 

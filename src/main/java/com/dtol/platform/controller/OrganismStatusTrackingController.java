@@ -23,9 +23,11 @@ public class OrganismStatusTrackingController {
 
     @RequestMapping(value = "", method = RequestMethod.GET)
     public ResponseEntity<HashMap<String, Object>> getBioSampleStatusTracking(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
-                                                              @RequestParam(value = "limit", required = false, defaultValue = "100") int limit) {
+                                                                              @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+                                                                              @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
+                                                                              @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
         HashMap<String, Object> response = new HashMap<>();
-        List<OrganismStatusTracking> resp = organismStatusTrackingService.findAll(offset, limit);
+        List<OrganismStatusTracking> resp = organismStatusTrackingService.findAll(offset, limit, sortColumn, sortOrder);
         long count = organismStatusTrackingService.getBiosampleStatusTrackingCount();
         response.put("biosampleStatus", resp);
         response.put("count", count);
