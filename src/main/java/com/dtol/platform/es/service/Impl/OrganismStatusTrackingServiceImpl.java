@@ -69,12 +69,12 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchAllQuery())
                 .withSearchType(SearchType.DEFAULT)
-                .addAggregation(terms("biosamples").field("biosamples.keyword").size(200))
-                .addAggregation(terms("raw_data").field("raw_data.keyword").size(200))
-                .addAggregation(terms("mapped_reads").field("mapped_reads.keyword").size(200))
-                .addAggregation(terms("assemblies").field("assemblies.keyword").size(200))
-                .addAggregation(terms("annotation_complete").field("annotation_complete.keyword").size(200))
-                .addAggregation(terms("annotation").field("annotation.keyword").size(200))
+                .addAggregation(terms("biosamples").field("biosamples").size(200))
+                .addAggregation(terms("raw_data").field("raw_data").size(200))
+                .addAggregation(terms("mapped_reads").field("mapped_reads").size(200))
+                .addAggregation(terms("assemblies").field("assemblies").size(200))
+                .addAggregation(terms("annotation_complete").field("annotation_complete").size(200))
+                .addAggregation(terms("annotation").field("annotation").size(200))
                 .build();
         SearchHits<OrganismStatusTracking> searchHits = elasticsearchOperations.search(searchQuery, OrganismStatusTracking.class,
                 IndexCoordinates.of("statuses"));
@@ -187,9 +187,9 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         if (sortColumn.isPresent()) {
             sort.append("'sort' : ");
             if (sortOrder.get().equals("asc")) {
-                sort.append("{'" + sortColumn.get() + ".keyword':'asc'},");
+                sort.append("{'" + sortColumn.get() + "':'asc'},");
             } else {
-                sort.append("{'" + sortColumn.get() + ".keyword':'desc'},");
+                sort.append("{'" + sortColumn.get() + "':'desc'},");
             }
         }
 
@@ -212,32 +212,32 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
             String [] splitArray = filterArray[i].split("-");
 
             if(splitArray[0].trim().equals("Biosamples")) {
-                sb.append("{'terms' : {'biosamples.keyword':[");
+                sb.append("{'terms' : {'biosamples':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
             }
             else if(splitArray[0].trim().equals("Raw data")) {
-                sb.append("{'terms' : {'raw_data.keyword':[");
+                sb.append("{'terms' : {'raw_data':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
             }
             else if(splitArray[0].trim().equals("Mapped reads")) {
-                sb.append("{'terms' : {'mapped_reads.keyword':[");
+                sb.append("{'terms' : {'mapped_reads':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
             }
             else if(splitArray[0].trim().equals("Assemblies")) {
-                sb.append("{'terms' : {'assemblies.keyword':[");
+                sb.append("{'terms' : {'assemblies':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
             }
             else if(splitArray[0].trim().equals("Annotation complete")) {
-                sb.append("{'terms' : {'annotation_complete.keyword':[");
+                sb.append("{'terms' : {'annotation_complete':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
             }
             else if(splitArray[0].trim().equals("Annotation")) {
-                sb.append("{'terms' : {'annotation.keyword':[");
+                sb.append("{'terms' : {'annotation':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
             }
@@ -245,12 +245,12 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("]}},");
 
         sb.append("'aggregations': {");
-        sb.append("'biosamples': {'terms': {'field': 'biosamples.keyword'}},");
-        sb.append("'raw_data': {'terms': {'field': 'raw_data.keyword'}},");
-        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads.keyword'}},");
-        sb.append("'assemblies': {'terms': {'field': 'assemblies.keyword'}},");
-        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete.keyword'}},");
-        sb.append("'annotation': {'terms': {'field': 'annotation.keyword'}}");
+        sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
+        sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
+        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
+        sb.append("'assemblies': {'terms': {'field': 'assemblies'}},");
+        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
+        sb.append("'annotation': {'terms': {'field': 'annotation'}}");
         sb.append("}");
 
         sb.append("}");
@@ -278,12 +278,12 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("}},");
 
         sb.append("'aggregations': {");
-        sb.append("'biosamples': {'terms': {'field': 'biosamples.keyword'}},");
-        sb.append("'raw_data': {'terms': {'field': 'raw_data.keyword'}},");
-        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads.keyword'}},");
-        sb.append("'assemblies': {'terms': {'field': 'assemblies.keyword'}},");
-        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete.keyword'}},");
-        sb.append("'annotation': {'terms': {'field': 'annotation.keyword'}}");
+        sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
+        sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
+        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
+        sb.append("'assemblies': {'terms': {'field': 'assemblies'}},");
+        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
+        sb.append("'annotation': {'terms': {'field': 'annotation'}}");
         sb.append("}");
 
         sb.append("}");
