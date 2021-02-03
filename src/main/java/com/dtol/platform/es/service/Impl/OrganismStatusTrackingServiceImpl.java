@@ -50,12 +50,26 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     @Override
     public List<OrganismStatusTracking> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
         Pageable pageable = null;
+        String sortColumnName = "";
         if (sortColumn.isPresent()) {
+            sortColumnName = sortColumn.get().toString();
+            if (sortColumnName.equals("metadata_submitted_to_biosamples")) {
+                sortColumnName = "biosamples";
+            } else if (sortColumnName.equals("raw_data_submitted_to_ena")) {
+                sortColumnName = "raw_data";
+            } else if (sortColumnName.equals("mapped_reads_submitted_to_ena")) {
+                sortColumnName = "mapped_reads";
+            } else if (sortColumnName.equals("assemblies_submitted_to_ena")) {
+                sortColumnName = "assemblies";
+            } else if (sortColumnName.equals("annotation_submitted_to_ena")) {
+                sortColumnName = "annotation";
+            }
+
             if (sortOrder.get().equals("asc")) {
-                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).ascending());
+                pageable = PageRequest.of(page, size, Sort.by(sortColumnName).ascending());
 
             } else {
-                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).descending());
+                pageable = PageRequest.of(page, size, Sort.by(sortColumnName).descending());
             }
         } else {
             pageable = PageRequest.of(page, size);
@@ -101,7 +115,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .stream()
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
-                    filterObj.put("key", "Biosamples - "+b.getKeyAsString());
+                    filterObj.put("key", "Biosamples - " + b.getKeyAsString());
                     filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
@@ -110,7 +124,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .stream()
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
-                    filterObj.put("key", "Raw data - "+b.getKeyAsString());
+                    filterObj.put("key", "Raw data - " + b.getKeyAsString());
                     filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
@@ -119,7 +133,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .stream()
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
-                    filterObj.put("key", "Mapped reads - "+b.getKeyAsString());
+                    filterObj.put("key", "Mapped reads - " + b.getKeyAsString());
                     filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
@@ -128,7 +142,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .stream()
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
-                    filterObj.put("key", "Assemblies - "+b.getKeyAsString());
+                    filterObj.put("key", "Assemblies - " + b.getKeyAsString());
                     filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
@@ -137,7 +151,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .stream()
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
-                    filterObj.put("key", "Annotation complete - "+b.getKeyAsString());
+                    filterObj.put("key", "Annotation complete - " + b.getKeyAsString());
                     filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
@@ -146,7 +160,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .stream()
                 .map(b -> {
                     JSONObject filterObj = new JSONObject();
-                    filterObj.put("key", "Annotation - "+b.getKeyAsString());
+                    filterObj.put("key", "Annotation - " + b.getKeyAsString());
                     filterObj.put("doc_count", b.getDocCount());
                     return filterObj;
                 })
@@ -194,11 +208,27 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     private StringBuilder getSortQuery(Optional<String> sortColumn, Optional<String> sortOrder) {
         StringBuilder sort = new StringBuilder();
         if (sortColumn.isPresent()) {
-            sort.append("'sort' : ");
-            if (sortOrder.get().equals("asc")) {
-                sort.append("{'" + sortColumn.get() + "':'asc'},");
-            } else {
-                sort.append("{'" + sortColumn.get() + "':'desc'},");
+            String sortColumnName = "";
+            if (sortColumn.isPresent()) {
+                sortColumnName = sortColumn.get().toString();
+                if (sortColumnName.equals("metadata_submitted_to_biosamples")) {
+                    sortColumnName = "biosamples";
+                } else if (sortColumnName.equals("raw_data_submitted_to_ena")) {
+                    sortColumnName = "raw_data";
+                } else if (sortColumnName.equals("mapped_reads_submitted_to_ena")) {
+                    sortColumnName = "mapped_reads";
+                } else if (sortColumnName.equals("assemblies_submitted_to_ena")) {
+                    sortColumnName = "assemblies";
+                } else if (sortColumnName.equals("annotation_submitted_to_ena")) {
+                    sortColumnName = "annotation";
+                }
+
+                sort.append("'sort' : ");
+                if (sortOrder.get().equals("asc")) {
+                    sort.append("{'" + sortColumnName + "':'asc'},");
+                } else {
+                    sort.append("{'" + sortColumnName + "':'desc'},");
+                }
             }
         }
 
@@ -218,34 +248,29 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("'query' : { 'bool' : { 'should' : [");
 
         for (int i = 0; i < filterArray.length; i++) {
-            String [] splitArray = filterArray[i].split("-");
+            String[] splitArray = filterArray[i].split("-");
 
-            if(splitArray[0].trim().equals("Biosamples")) {
+            if (splitArray[0].trim().equals("Biosamples")) {
                 sb.append("{'terms' : {'biosamples':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
-            }
-            else if(splitArray[0].trim().equals("Raw data")) {
+            } else if (splitArray[0].trim().equals("Raw data")) {
                 sb.append("{'terms' : {'raw_data':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
-            }
-            else if(splitArray[0].trim().equals("Mapped reads")) {
+            } else if (splitArray[0].trim().equals("Mapped reads")) {
                 sb.append("{'terms' : {'mapped_reads':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
-            }
-            else if(splitArray[0].trim().equals("Assemblies")) {
+            } else if (splitArray[0].trim().equals("Assemblies")) {
                 sb.append("{'terms' : {'assemblies':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
-            }
-            else if(splitArray[0].trim().equals("Annotation complete")) {
+            } else if (splitArray[0].trim().equals("Annotation complete")) {
                 sb.append("{'terms' : {'annotation_complete':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
-            }
-            else if(splitArray[0].trim().equals("Annotation")) {
+            } else if (splitArray[0].trim().equals("Annotation")) {
                 sb.append("{'terms' : {'annotation':[");
                 sb.append("'" + splitArray[1].trim() + "'");
                 sb.append("]}},");
@@ -264,7 +289,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
 
         sb.append("}");
 
-        String query = sb.toString().replaceAll("'", "\"").replaceAll(",]","]");
+        String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
         return query;
     }
 
