@@ -59,10 +59,10 @@ public class RootSampleServiceImpl implements RootSampleService {
         Pageable pageable = null;
         if (sortColumn.isPresent()) {
             if (sortOrder.get().equals("asc")) {
-                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get() + ".keyword").ascending());
+                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).ascending());
 
             } else {
-                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get() + ".keyword").descending());
+                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).descending());
             }
         } else {
             pageable = PageRequest.of(page, size);
@@ -365,16 +365,16 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'aggs' : { 'group_by_organism' : { 'composite' : {");
         sb.append("'size':" + size + ",");
         sb.append("'sources': [");
-        sb.append("{'organism' : {'terms': {'field': 'organism.keyword',");
+        sb.append("{'organism' : {'terms': {'field': 'organism',");
         sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("organism")) ? "'"+sortOrder.get().toString()+"'}}}," : "'asc'}}},"));
 
-        sb.append("{'commonName' : {'terms': {'field': 'commonName.keyword',");
+        sb.append("{'commonName' : {'terms': {'field': 'commonName',");
         sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("commonName")) ? "'"+ sortOrder.get().toString()+"'}}}," : "'asc'}}},"));
 
-        sb.append("{'sex' : {'terms': {'field': 'sex.keyword',");
+        sb.append("{'sex' : {'terms': {'field': 'sex',");
         sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("sex")) ? "'"+ sortOrder.get().toString()+"'}}}," : "'asc'}}},"));
 
-        sb.append("{'trackingSystem' : {'terms': {'field': 'trackingSystem.keyword',");
+        sb.append("{'trackingSystem' : {'terms': {'field': 'trackingSystem',");
         sb.append("'missing_bucket': true,'order':" + ((sortOrder.isPresent() && sortColumn.get().toString().equals("trackingSystem")) ? "'"+ sortOrder.get().toString()+"'}}}" : "'asc'}}}"));
 
         if(afterKey.isPresent())
@@ -390,7 +390,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         sb.append("'size':" + 0 + ",");
-        sb.append("'aggs' : { 'type_count': { 'cardinality' : { 'field' : 'organism.keyword'");
+        sb.append("'aggs' : { 'type_count': { 'cardinality' : { 'field' : 'organism'");
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
         return query;
@@ -438,12 +438,12 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("{");
         sb.append("'size':0,");
         sb.append("'query' : { 'bool' : { 'should' : [");
-        sb.append("{'terms' : {'organism.keyword':['");
+        sb.append("{'terms' : {'organism':['");
         sb.append(organism);
         sb.append("']}}]}},");
 
         sb.append("'aggs':{");
-        sb.append("'accession':{'terms':{'field':'accession.keyword'}}");
+        sb.append("'accession':{'terms':{'field':'accession'}}");
         sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
 

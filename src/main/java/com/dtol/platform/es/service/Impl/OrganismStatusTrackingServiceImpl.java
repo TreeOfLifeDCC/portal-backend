@@ -60,7 +60,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         } else {
             pageable = PageRequest.of(page, size);
         }
-        System.out.println(pageable.toString());
         Page<OrganismStatusTracking> pageObj = organismStatusTrackingRepository.findAll(pageable);
         return pageObj.toList();
     }
@@ -266,7 +265,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]","]");
-        System.out.println(query);
         return query;
     }
 
