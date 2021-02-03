@@ -1,11 +1,12 @@
-image: docker:19.03.12
+before_script:
+  - docker info
 
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
 services:
-  - docker:19.03.12-dind
+  - docker:20.10.3-dind
 
 build-app-master:
   stage: build
