@@ -127,8 +127,7 @@ public class RootSampleServiceImpl implements RootSampleService {
     @Override
     public Map<String, JSONArray> getSecondaryOrganismFilters(String organism) throws ParseException {
         Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
-        List<JSONObject> sexFilterObj = null;
-        List<JSONObject> trackFilterObj = null;
+
 
 
         StringBuilder sb = new StringBuilder();
@@ -143,16 +142,19 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'filters': { 'nested': { 'path':'records'},");
         sb.append("'aggs':{");
         sb.append("'sex_filter':{'terms':{'field':'records.sex', 'size': 2000}},");
-        sb.append("'tracking_status_filter':{'terms':{'field':'records.trackingSystem', 'size': 2000}}");
+        sb.append("'tracking_status_filter':{'terms':{'field':'records.trackingSystem', 'size': 2000}},");
+        sb.append("'organism_part_filter':{'terms':{'field':'records.organismPart', 'size': 2000}}");
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
         String respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
         JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
         JSONArray trackFilter = (JSONArray) ((JSONObject) aggregations.get("tracking_status_filter")).get("buckets");
+        JSONArray orgPartFilterObj = (JSONArray) ((JSONObject) aggregations.get("organism_part_filter")).get("buckets");
 
         filterMap.put("sex",sexFilter);
         filterMap.put("trackingSystem",trackFilter);
+        filterMap.put("organismPart",orgPartFilterObj);
 
         return filterMap;
 
