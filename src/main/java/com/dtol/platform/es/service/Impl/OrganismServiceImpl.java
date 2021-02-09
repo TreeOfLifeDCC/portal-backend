@@ -3,7 +3,17 @@ package com.dtol.platform.es.service.Impl;
 import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.repository.OrganismRepository;
 import com.dtol.platform.es.service.OrganismService;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.index.query.Operator;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -18,6 +28,8 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
@@ -78,7 +90,7 @@ public class OrganismServiceImpl implements OrganismService {
                 .withQuery(matchAllQuery())
                 .build();
         long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("organisms"));
+                .count(searchQuery, IndexCoordinates.of("organisms_test"));
         return count;
     }
 
@@ -88,13 +100,98 @@ public class OrganismServiceImpl implements OrganismService {
                 .withQuery(matchQuery("organism.text", organism).operator(Operator.AND))
                 .build();
         SearchHits<Organism> bioSample = elasticsearchOperations
-                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms"));
+                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms_test"));
 
         if (bioSample.getTotalHits() > 0) {
             return bioSample.getSearchHit(0).getContent();
         } else {
             return new Organism();
         }
+    }
+
+    @Override
+    public Map<String, JSONArray> getSpecimensFilters(String accession) throws ParseException {
+        Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'size':0,");
+        sb.append("'query' : { 'bool' : { 'should' : [");
+        sb.append("{'terms' : {'accession':['");
+        sb.append(accession);
+        sb.append("']}}]}},");
+
+        sb.append("'aggregations':{");
+        sb.append("'filters': { 'nested': { 'path':'specimens'},");
+        sb.append("'aggs':{");
+        sb.append("'sex_filter':{'terms':{'field':'records.sex', 'size': 2000}},");
+        sb.append("'organism_part_filter':{'terms':{'field':'records.organismPart', 'size': 2000}}");
+        sb.append("}}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/organisms_test/_search", query);
+        JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
+        JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
+        JSONArray orgPartFilterObj = (JSONArray) ((JSONObject) aggregations.get("organism_part_filter")).get("buckets");
+
+        filterMap.put("sex",sexFilter);
+        filterMap.put("organismPart",orgPartFilterObj);
+
+        return filterMap;
+    }
+
+    @Override
+    public String getOrganismByAccession(String accession) {
+        Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'query' : { 'bool' : { 'must' : [");
+        sb.append("{'terms' : {'accession.keyword':['");
+        sb.append(accession);
+        sb.append("']}}]}}}");
+
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/organisms_test/_search", query);
+
+        return respString;
+    }
+
+    @Override
+    public String getSpecimenByAccession(String accession) {
+        Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'query' : { 'bool' : { 'must' : [");
+        sb.append("{'terms' : {'accession.keyword':['");
+        sb.append(accession);
+        sb.append("']}}]}}}");
+
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/specimens_test/_search", query);
+
+        return respString;
+    }
+
+    private String postRequest(String baseURL, String body) {
+        CloseableHttpClient client = HttpClients.createDefault();
+        StringEntity entity = null;
+        String resp = "";
+        try {
+            HttpPost httpPost = new HttpPost(baseURL);
+            entity = new StringEntity(body);
+            httpPost.setEntity(entity);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+            CloseableHttpResponse rs = client.execute(httpPost);
+            resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return resp;
     }
 
 }

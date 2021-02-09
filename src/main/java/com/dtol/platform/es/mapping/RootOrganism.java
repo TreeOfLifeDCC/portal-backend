@@ -1,5 +1,8 @@
-package com.dtol.platform.es.mapping.DTO;
+package com.dtol.platform.es.mapping;
 
+import com.dtol.platform.es.mapping.DTO.OrganismAssemblyDTO;
+import com.dtol.platform.es.mapping.DTO.OrganismExperimentDTO;
+import com.dtol.platform.es.mapping.DTO.RootSampleRecordsDTO;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -7,7 +10,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.List;
 
-@Document(indexName = "new_index", createIndex = false, replicas = 2, shards = 1)
+@Document(indexName = "data_portal_test", createIndex = false, replicas = 2, shards = 1)
 public class RootOrganism {
     @Id
     String id;
@@ -23,6 +26,12 @@ public class RootOrganism {
 
     @Field(name = "records", type = FieldType.Nested)
     private List<RootSampleRecordsDTO> records;
+
+    @Field(name = "experiment", type = FieldType.Nested)
+    private List<OrganismExperimentDTO> experiment;
+
+    @Field(name = "assemblies", type = FieldType.Nested)
+    private List<OrganismAssemblyDTO> assemblies;
 
     public String getId() {
         return id;
@@ -62,5 +71,21 @@ public class RootOrganism {
 
     public void setRecords(List<RootSampleRecordsDTO> records) {
         this.records = records;
+    }
+
+    public List<OrganismExperimentDTO> getExperiment() {
+        return experiment;
+    }
+
+    public void setExperiment(List<OrganismExperimentDTO> experiment) {
+        this.experiment = experiment;
+    }
+
+    public List<OrganismAssemblyDTO> getAssemblies() {
+        return assemblies;
+    }
+
+    public void setAssemblies(List<OrganismAssemblyDTO> assemblies) {
+        this.assemblies = assemblies;
     }
 }

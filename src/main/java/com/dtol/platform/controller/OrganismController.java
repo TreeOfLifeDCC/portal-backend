@@ -3,6 +3,8 @@ package com.dtol.platform.controller;
 import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.RootSample;
 import com.dtol.platform.es.service.OrganismService;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -34,9 +37,9 @@ public class OrganismController {
     }
 
     @RequestMapping(value = "/{accession}", method = RequestMethod.GET)
-    public ResponseEntity<Organism> findBioSampleByAccession(@PathVariable("accession") String accession) {
-        Organism rs = organismService.findBioSampleByAccession(accession);
-        return new ResponseEntity<Organism> (rs, HttpStatus.OK);
+    public ResponseEntity<String> findBioSampleByAccession(@PathVariable("accession") String accession) {
+        String rs = organismService.getOrganismByAccession(accession);
+        return new ResponseEntity<String> (rs, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
@@ -49,6 +52,18 @@ public class OrganismController {
     public ResponseEntity<Organism> findBioSampleByOrganism(@PathVariable("organism") String organism) {
         Organism resp = organismService.findBioSampleByOrganismByText(organism);
         return new ResponseEntity<Organism> (resp, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/filters", method = RequestMethod.GET)
+    public ResponseEntity<Map<String, JSONArray>> getFilters(@RequestParam(name = "accession") String accession) throws ParseException {
+        Map<String, JSONArray> resp = organismService.getSpecimensFilters(accession);
+        return new ResponseEntity<Map<String, JSONArray>>(resp, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/specimen/{accession}", method = RequestMethod.GET)
+    public ResponseEntity<String> getSpecimenByAccession(@PathVariable("accession") String accession) {
+        String rs = organismService.getSpecimenByAccession(accession);
+        return new ResponseEntity<String> (rs, HttpStatus.OK);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.dtol.platform.es.service.Impl;
 
-import com.dtol.platform.es.mapping.DTO.RootOrganism;
+import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.RootSample;
 import com.dtol.platform.es.repository.RootOrganismRepository;
@@ -107,7 +107,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 .addAggregation(terms("trackingSystem").field("trackingSystem").size(100))
                 .build();
         SearchHits<RootSample> searchHits = elasticsearchOperations.search(searchQuery, RootSample.class,
-                IndexCoordinates.of("new_index"));
+                IndexCoordinates.of("data_portal_test"));
         Map<String, Aggregation> results = searchHits.getAggregations().asMap();
         ParsedStringTerms trackFilter = (ParsedStringTerms) results.get("trackingSystem");
 
@@ -127,9 +127,6 @@ public class RootSampleServiceImpl implements RootSampleService {
     @Override
     public Map<String, JSONArray> getSecondaryOrganismFilters(String organism) throws ParseException {
         Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
-
-
-
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         sb.append("'size':0,");
@@ -146,7 +143,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'organism_part_filter':{'terms':{'field':'records.organismPart', 'size': 2000}}");
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
         JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
         JSONArray trackFilter = (JSONArray) ((JSONObject) aggregations.get("tracking_status_filter")).get("buckets");
@@ -166,7 +163,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getSecondaryOrganismFilterResultQuery(organism, filter, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
+        respString = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", query);
         return respString;
     }
 
@@ -176,7 +173,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getOrganismFilterQuery(filter, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
+        respString = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", query);
         return respString;
     }
 
@@ -187,7 +184,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getRootOrganismSearchQuery(search, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://" + esConnectionURL + "/new_index/_search", query);
+        respString = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", query);
 
         return respString;
     }
@@ -338,7 +335,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 .withQuery(matchAllQuery())
                 .build();
         long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("new_index"));
+                .count(searchQuery, IndexCoordinates.of("data_portal_test"));
         return count;
     }
 
@@ -348,7 +345,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 .withQuery(matchAllQuery())
                 .build();
         long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("new_index"));
+                .count(searchQuery, IndexCoordinates.of("data_portal_test"));
         return count;
     }
 

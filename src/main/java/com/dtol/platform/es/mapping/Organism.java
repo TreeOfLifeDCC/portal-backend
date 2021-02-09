@@ -9,7 +9,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.List;
 
-@Document(indexName = "organisms", createIndex = false, replicas = 2, shards = 1)
+@Document(indexName = "organisms_test", createIndex = false, replicas = 2, shards = 1)
 public class Organism {
 
     @Id
@@ -93,14 +93,8 @@ public class Organism {
     @Field(name = "customFields", type = FieldType.Nested)
     private List<OrganismCustomFieldsDTO> customFields;
 
-    @Field(name = "experiment", type = FieldType.Nested)
-    private List<OrganismExperimentDTO> experiment;
-
     @Field(name = "trackingSystem", type = FieldType.Text)
     private String trackingSystem;
-
-    @Field(name = "assemblies", type = FieldType.Nested)
-    private List<OrganismAssemblyDTO> assemblies;
 
     @Field(name = "etag", type = FieldType.Keyword)
     private String etag;
@@ -112,7 +106,10 @@ public class Organism {
     private String sampleDerivedFrom;
 
     @Field(name = "specimens", type = FieldType.Nested)
-    private List<OrganismGeographicLocationDTO> specimens;
+    private List<RootSampleRecordsDTO> specimens;
+
+    @Field(name = "assemblies", type = FieldType.Nested)
+    private List<OrganismAssemblyDTO> assemblies;
 
     public String getId() {
         return Id;
@@ -330,28 +327,12 @@ public class Organism {
         this.customFields = customFields;
     }
 
-    public List<OrganismExperimentDTO> getExperiment() {
-        return experiment;
-    }
-
-    public void setExperiment(List<OrganismExperimentDTO> experiment) {
-        this.experiment = experiment;
-    }
-
     public String getTrackingSystem() {
         return trackingSystem;
     }
 
     public void setTrackingSystem(String trackingSystem) {
         this.trackingSystem = trackingSystem;
-    }
-
-    public List<OrganismAssemblyDTO> getAssemblies() {
-        return assemblies;
-    }
-
-    public void setAssemblies(List<OrganismAssemblyDTO> assemblies) {
-        this.assemblies = assemblies;
     }
 
     public String getEtag() {
@@ -378,11 +359,19 @@ public class Organism {
         this.sampleDerivedFrom = sampleDerivedFrom;
     }
 
-    public List<OrganismGeographicLocationDTO> getSpecimens() {
+    public List<RootSampleRecordsDTO> getSpecimens() {
         return specimens;
     }
 
-    public void setSpecimens(List<OrganismGeographicLocationDTO> specimens) {
+    public void setSpecimens(List<RootSampleRecordsDTO> specimens) {
         this.specimens = specimens;
+    }
+
+    public List<OrganismAssemblyDTO> getAssemblies() {
+        return assemblies;
+    }
+
+    public void setAssemblies(List<OrganismAssemblyDTO> assemblies) {
+        this.assemblies = assemblies;
     }
 }
