@@ -279,7 +279,11 @@ public class RootSampleServiceImpl implements RootSampleService {
     private String getRootOrganismSearchQuery(String search, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
-
+        StringBuilder searchQuery = new StringBuilder();
+        String [] searchArray = search.split(" ");
+        for(String temp: searchArray) {
+            searchQuery.append("*"+temp+"*");
+        }
         sb.append("{");
         if (from.equals("undefined") && size.equals("undefined")) {
             sb.append("'from' :" + 0 + ",'size':" + 20 + ",");
@@ -290,7 +294,7 @@ public class RootSampleServiceImpl implements RootSampleService {
             sb.append(sort);
         sb.append("'query': {");
         sb.append("'query_string': {");
-        sb.append("'query' : '*" + search + "*',");
+        sb.append("'query' : '" + searchQuery.toString() + "',");
         sb.append("'fields' : ['organism.normalize','commonName.normalize', 'trackingSystem.normalize']");
         sb.append("}},");
 
