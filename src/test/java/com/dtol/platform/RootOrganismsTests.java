@@ -1,5 +1,6 @@
 package com.dtol.platform;
 
+import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.mapping.RootSample;
 import com.dtol.platform.es.service.RootSampleService;
 import org.junit.jupiter.api.Test;
@@ -32,27 +33,27 @@ public class RootOrganismsTests {
 
     @Test
     void findAllRootSamples() throws Exception {
-        List<RootSample> emptySampleList = new ArrayList<RootSample>();
-        emptySampleList.add(new RootSample());
+        List<RootOrganism> emptySampleList = new ArrayList<RootOrganism>();
+        emptySampleList.add(new RootOrganism());
 
         Optional<String> sortColumn = Optional.of("accession");
         Optional<String> sortOrder = Optional.of("asc");
 
-        when((rootSampleService.findAll(0,10, sortColumn, sortOrder))).thenReturn(emptySampleList);
+        when((rootSampleService.findAllOrganisms(0,10, sortColumn, sortOrder))).thenReturn(emptySampleList);
 
-        this.mockMvc.perform(get("/root_organisms")).andDo(print()).andExpect(status().isOk())
+        this.mockMvc.perform(get("/data_portal_test")).andDo(print()).andExpect(status().isOk())
                 .andExpect(content().string(containsString("{\"rootSamples\":[],\"count\":0}")));
     }
 
     @Test
     void getOrganismDetails() throws Exception {
-        RootSample organism = new RootSample();
+        RootOrganism organism = new RootOrganism();
         Optional<String> sortColumn = Optional.of("accession");
         Optional<String> sortOrder = Optional.of("asc");
 
-        when((rootSampleService.findRootSampleByAccession(""))).thenReturn(organism);
+        when((rootSampleService.findRootSampleByOrganism(""))).thenReturn(organism);
 
-        this.mockMvc.perform(get("/root_organisms")).andDo(print()).andExpect(status().isOk())
+        this.mockMvc.perform(get("/data_portal_test")).andDo(print()).andExpect(status().isOk())
                 .andExpect(content().string(containsString("{\"rootSamples\":[],\"count\":0}")));
     }
 

@@ -4,7 +4,6 @@ import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.mapping.Organism;
 import com.dtol.platform.es.mapping.RootSample;
 import com.dtol.platform.es.repository.RootOrganismRepository;
-import com.dtol.platform.es.repository.RootSampleRepository;
 import com.dtol.platform.es.service.RootSampleService;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -48,29 +47,9 @@ public class RootSampleServiceImpl implements RootSampleService {
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
     @Autowired
-    RootSampleRepository rootSampleRepository;
-    @Autowired
     RootOrganismRepository rootOrganismRepository;
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
-
-    @Override
-    public List<RootSample> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        Pageable pageable = null;
-        if (sortColumn.isPresent()) {
-            if (sortOrder.get().equals("asc")) {
-                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).ascending());
-
-            } else {
-                pageable = PageRequest.of(page, size, Sort.by(sortColumn.get()).descending());
-            }
-        } else {
-            pageable = PageRequest.of(page, size);
-        }
-
-        Page<RootSample> pageObj = rootSampleRepository.findAll(pageable);
-        return pageObj.toList();
-    }
 
     @Override
     public List<RootOrganism> findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
@@ -88,12 +67,6 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         Page<RootOrganism> pageObj = rootOrganismRepository.findAll(pageable);
         return pageObj.toList();
-    }
-
-    @Override
-    public RootSample findRootSampleByAccession(String accession) {
-        RootSample rootSample = rootSampleRepository.findRootSampleByAccession(accession);
-        return rootSample;
     }
 
     @Override
@@ -354,12 +327,6 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public List<RootSample> findRelatedSampleByOrganism(String organism) {
-        List<RootSample> rootSample = rootSampleRepository.findRootSampleByOrganism(organism);
-        return rootSample;
-    }
-
-    @Override
     public String getDistinctRootSamplesByOrganismQuery(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
@@ -420,13 +387,6 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject resp = (JSONObject) new JSONParser().parse(respString);
         String count = ((JSONObject) ((JSONObject) resp.get("aggregations")).get("type_count")).get("value").toString();
         return count;
-    }
-
-    @Override
-    public String saveRootSample(RootSample rootSample) {
-        rootSample.setId(rootSample.getOrganism());
-        RootSample bs = rootSampleRepository.save(rootSample);
-        return bs.getId();
     }
 
     @Override

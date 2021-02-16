@@ -12,11 +12,7 @@ import java.util.Optional;
 
 public interface RootSampleService {
 
-    public List<RootSample> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
-
     public List<RootOrganism> findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
-
-    public RootSample findRootSampleByAccession(String accession);
 
     public Map<String, List<JSONObject>> getRootOrganismFilters();
 
@@ -32,8 +28,6 @@ public interface RootSampleService {
 
     public long getRelatedOrganismCount();
 
-    public List<RootSample> findRelatedSampleByOrganism(String organism);
-
     public String getDistinctRootSamplesByOrganismQuery(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey);
 
     public String getDistinctRootSamplesCountByOrganismQuery();
@@ -41,8 +35,6 @@ public interface RootSampleService {
     public JSONObject getDistinctRootSamplesByOrganism(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey) throws ParseException;
 
     public String getDistinctRootSamplesCountByOrganism() throws ParseException;
-
-    public String saveRootSample(RootSample rootSample);
 
     public RootOrganism findRootSampleByOrganism(String organism);
 
