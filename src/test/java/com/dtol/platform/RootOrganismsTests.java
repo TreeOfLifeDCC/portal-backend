@@ -41,7 +41,7 @@ public class RootOrganismsTests {
 
         when((rootSampleService.findAllOrganisms(0,10, sortColumn, sortOrder))).thenReturn(emptySampleList);
 
-        this.mockMvc.perform(get("/data_portal_test")).andDo(print()).andExpect(status().isOk())
+        this.mockMvc.perform(get("/root_organisms")).andDo(print()).andExpect(status().isOk())
                 .andExpect(content().string(containsString("{\"rootSamples\":[],\"count\":0}")));
     }
 
@@ -53,7 +53,7 @@ public class RootOrganismsTests {
 
         when((rootSampleService.findRootSampleByOrganism(""))).thenReturn(organism);
 
-        this.mockMvc.perform(get("/data_portal_test")).andDo(print()).andExpect(status().isOk())
+        this.mockMvc.perform(get("/root_organisms/")).andDo(print()).andExpect(status().isOk())
                 .andExpect(content().string(containsString("{\"rootSamples\":[],\"count\":0}")));
     }
 

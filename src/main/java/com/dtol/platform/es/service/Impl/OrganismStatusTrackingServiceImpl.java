@@ -245,7 +245,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
             sb.append("'from' :" + from + ",'size':" + size + ",");
         if (sort.length() != 0)
             sb.append(sort);
-        sb.append("'query' : { 'bool' : { 'should' : [");
+        sb.append("'query' : { 'bool' : { 'must' : [");
 
         for (int i = 0; i < filterArray.length; i++) {
             String[] splitArray = filterArray[i].split("-");
@@ -297,9 +297,9 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
         StringBuilder searchQuery = new StringBuilder();
-        String [] searchArray = search.split(" ");
-        for(String temp: searchArray) {
-            searchQuery.append("*"+temp+"*");
+        String[] searchArray = search.split(" ");
+        for (String temp : searchArray) {
+            searchQuery.append("*" + temp + "*");
         }
         sb.append("{");
         if (from.equals("undefined") && size.equals("undefined")) {
