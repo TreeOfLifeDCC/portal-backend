@@ -1,8 +1,7 @@
 package com.dtol.platform.es.service.Impl;
 
 import com.dtol.platform.es.mapping.RootOrganism;
-import com.dtol.platform.es.mapping.Organism;
-import com.dtol.platform.es.mapping.RootSample;
+import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.RootOrganismRepository;
 import com.dtol.platform.es.service.RootSampleService;
 import org.apache.commons.io.IOUtils;
@@ -79,7 +78,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 .withSearchType(SearchType.DEFAULT)
                 .addAggregation(terms("trackingSystem").field("trackingSystem").size(100))
                 .build();
-        SearchHits<RootSample> searchHits = elasticsearchOperations.search(searchQuery, RootSample.class,
+        SearchHits<RootOrganism> searchHits = elasticsearchOperations.search(searchQuery, RootOrganism.class,
                 IndexCoordinates.of("data_portal_test"));
         Map<String, Aggregation> results = searchHits.getAggregations().asMap();
         ParsedStringTerms trackFilter = (ParsedStringTerms) results.get("trackingSystem");
@@ -152,7 +151,7 @@ public class RootSampleServiceImpl implements RootSampleService {
 
     @Override
     public String findRootOrganismSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        List<Organism> results = new ArrayList<Organism>();
+        List<SecondaryOrganism> results = new ArrayList<SecondaryOrganism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();

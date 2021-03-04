@@ -1,7 +1,7 @@
 package com.dtol.platform.es.service.Impl;
 
-import com.dtol.platform.es.mapping.Organism;
-import com.dtol.platform.es.mapping.OrganismStatusTracking;
+import com.dtol.platform.es.mapping.SecondaryOrganism;
+import com.dtol.platform.es.mapping.StatusTracking;
 import com.dtol.platform.es.repository.OrganismStatusTrackingRepository;
 import com.dtol.platform.es.service.OrganismStatusTrackingService;
 import org.apache.commons.io.IOUtils;
@@ -48,7 +48,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     private ElasticsearchOperations elasticsearchOperations;
 
     @Override
-    public List<OrganismStatusTracking> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public List<StatusTracking> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
         Pageable pageable = null;
         String sortColumnName = "";
         if (sortColumn.isPresent()) {
@@ -74,7 +74,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         } else {
             pageable = PageRequest.of(page, size);
         }
-        Page<OrganismStatusTracking> pageObj = organismStatusTrackingRepository.findAll(pageable);
+        Page<StatusTracking> pageObj = organismStatusTrackingRepository.findAll(pageable);
         return pageObj.toList();
     }
 
@@ -101,7 +101,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .addAggregation(terms("annotation_complete").field("annotation_complete").size(200))
                 .addAggregation(terms("annotation").field("annotation").size(200))
                 .build();
-        SearchHits<OrganismStatusTracking> searchHits = elasticsearchOperations.search(searchQuery, OrganismStatusTracking.class,
+        SearchHits<StatusTracking> searchHits = elasticsearchOperations.search(searchQuery, StatusTracking.class,
                 IndexCoordinates.of("statuses"));
         Map<String, Aggregation> results = searchHits.getAggregations().asMap();
         ParsedStringTerms bioFilter = (ParsedStringTerms) results.get("biosamples");
@@ -171,7 +171,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
 
     @Override
     public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        List<Organism> results = new ArrayList<Organism>();
+        List<SecondaryOrganism> results = new ArrayList<SecondaryOrganism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
@@ -183,7 +183,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
 
     @Override
     public String findSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        List<Organism> results = new ArrayList<Organism>();
+        List<SecondaryOrganism> results = new ArrayList<SecondaryOrganism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
@@ -195,7 +195,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
 
     @Override
     public String findBioSampleByOrganismByText(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        List<Organism> results = new ArrayList<Organism>();
+        List<SecondaryOrganism> results = new ArrayList<SecondaryOrganism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();

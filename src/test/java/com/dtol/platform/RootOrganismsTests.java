@@ -1,7 +1,6 @@
 package com.dtol.platform;
 
 import com.dtol.platform.es.mapping.RootOrganism;
-import com.dtol.platform.es.mapping.RootSample;
 import com.dtol.platform.es.service.RootSampleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,7 @@
 package com.dtol.platform.es.mapping;
 
 import com.dtol.platform.es.mapping.DTO.*;
+import io.swagger.annotations.ApiModel;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -8,9 +9,9 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.List;
-
+@ApiModel(description = "Secondary Organism Model")
 @Document(indexName = "organisms_test", createIndex = false, replicas = 2, shards = 1)
-public class Organism {
+public class SecondaryOrganism {
 
     @Id
     private String Id;
@@ -106,7 +107,7 @@ public class Organism {
     private String sampleDerivedFrom;
 
     @Field(name = "specimens", type = FieldType.Nested)
-    private List<RootSampleRecordsDTO> specimens;
+    private List<RootOrganismRecordsDTO> specimens;
 
     @Field(name = "assemblies", type = FieldType.Nested)
     private List<OrganismAssemblyDTO> assemblies;
@@ -359,11 +360,11 @@ public class Organism {
         this.sampleDerivedFrom = sampleDerivedFrom;
     }
 
-    public List<RootSampleRecordsDTO> getSpecimens() {
+    public List<RootOrganismRecordsDTO> getSpecimens() {
         return specimens;
     }
 
-    public void setSpecimens(List<RootSampleRecordsDTO> specimens) {
+    public void setSpecimens(List<RootOrganismRecordsDTO> specimens) {
         this.specimens = specimens;
     }
 

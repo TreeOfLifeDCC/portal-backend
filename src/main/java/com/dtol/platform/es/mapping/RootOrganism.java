@@ -2,7 +2,8 @@ package com.dtol.platform.es.mapping;
 
 import com.dtol.platform.es.mapping.DTO.OrganismAssemblyDTO;
 import com.dtol.platform.es.mapping.DTO.OrganismExperimentDTO;
-import com.dtol.platform.es.mapping.DTO.RootSampleRecordsDTO;
+import com.dtol.platform.es.mapping.DTO.RootOrganismRecordsDTO;
+import io.swagger.annotations.ApiModel;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -10,6 +11,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.List;
 
+@ApiModel(description = "Root Organism Model")
 @Document(indexName = "data_portal_test", createIndex = false, replicas = 2, shards = 1)
 public class RootOrganism {
     @Id
@@ -25,7 +27,7 @@ public class RootOrganism {
     private String trackingSystem;
 
     @Field(name = "records", type = FieldType.Nested)
-    private List<RootSampleRecordsDTO> records;
+    private List<RootOrganismRecordsDTO> records;
 
     @Field(name = "experiment", type = FieldType.Nested)
     private List<OrganismExperimentDTO> experiment;
@@ -65,11 +67,11 @@ public class RootOrganism {
         this.trackingSystem = trackingSystem;
     }
 
-    public List<RootSampleRecordsDTO> getRecords() {
+    public List<RootOrganismRecordsDTO> getRecords() {
         return records;
     }
 
-    public void setRecords(List<RootSampleRecordsDTO> records) {
+    public void setRecords(List<RootOrganismRecordsDTO> records) {
         this.records = records;
     }
 

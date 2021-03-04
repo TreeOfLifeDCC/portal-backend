@@ -1,6 +1,6 @@
 package com.dtol.platform.es.repository.Impl;
 
-import com.dtol.platform.es.mapping.Organism;
+import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.OrganismRepository;
 import org.elasticsearch.index.query.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,29 +24,29 @@ public abstract class OrganismRepositoryImpl implements OrganismRepository {
     private ElasticsearchOperations elasticsearchOperations;
 
     @Override
-    public Organism save(Organism organism) {
-        IndexCoordinates indexCoordinates = elasticsearchOperations.getIndexCoordinatesFor(Organism.class);
+    public SecondaryOrganism save(SecondaryOrganism secondaryOrganism) {
+        IndexCoordinates indexCoordinates = elasticsearchOperations.getIndexCoordinatesFor(SecondaryOrganism.class);
         IndexQuery indexQuery = new IndexQueryBuilder()
                 .withId(UUID.randomUUID().toString())
-                .withObject(organism)
+                .withObject(secondaryOrganism)
                 .build();
         String documentId = elasticsearchOperations.index(indexQuery, indexCoordinates);
-        return organism;
+        return secondaryOrganism;
     }
 
     @Override
-    public Organism findBioSampleByAccession(String accession) {
+    public SecondaryOrganism findBioSampleByAccession(String accession) {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchQuery("accession",accession).operator(Operator.AND))
                 .build();
-        SearchHits<Organism> bioSample = elasticsearchOperations
-                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms"));
+        SearchHits<SecondaryOrganism> bioSample = elasticsearchOperations
+                .search(searchQuery, SecondaryOrganism.class, IndexCoordinates.of("organisms"));
 
         if(bioSample.getTotalHits() > 0) {
             return bioSample.getSearchHit(0).getContent();
         }
         else {
-            return new Organism();
+            return new SecondaryOrganism();
         }
     }
 

@@ -1,11 +1,15 @@
 package com.dtol.platform.controller;
 
-import com.dtol.platform.es.mapping.OrganismStatusTracking;
-import com.dtol.platform.es.mapping.RootSample;
+import com.dtol.platform.es.mapping.SecondaryOrganism;
+import com.dtol.platform.es.mapping.StatusTracking;
 import com.dtol.platform.es.service.OrganismStatusTrackingService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,18 +20,20 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/statuses")
-public class OrganismStatusTrackingController {
+@Api(tags = "Root organism Status Tracking", description = "Controller for Root organism Status Tracking")
+public class StatusTrackingController {
 
     @Autowired
     OrganismStatusTrackingService organismStatusTrackingService;
 
-    @RequestMapping(value = "", method = RequestMethod.GET)
-    public ResponseEntity<HashMap<String, Object>> getBioSampleStatusTracking(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+    @ApiOperation(value = "View a list of Organism Status Tracking", response = Iterable.class)
+    @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<HashMap<String, Object>> getOrganismStatuses(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                                               @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
                                                                               @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
                                                                               @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
         HashMap<String, Object> response = new HashMap<>();
-        List<OrganismStatusTracking> resp = organismStatusTrackingService.findAll(offset, limit, sortColumn, sortOrder);
+        List<StatusTracking> resp = organismStatusTrackingService.findAll(offset, limit, sortColumn, sortOrder);
         long count = organismStatusTrackingService.getBiosampleStatusTrackingCount();
         response.put("biosampleStatus", resp);
         response.put("count", count);
@@ -35,13 +41,15 @@ public class OrganismStatusTrackingController {
 
     }
 
-    @RequestMapping(value = "/filters", method = RequestMethod.GET)
-    public Map<String, List<JSONObject>> getFilters() {
+    @ApiOperation(value = "Get Filters for Organism Status Tracking", response = Iterable.class)
+    @RequestMapping(value = "/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, List<JSONObject>> getStatusFilters() {
         return organismStatusTrackingService.getFilters();
     }
 
-    @RequestMapping(value = "/search", method = RequestMethod.GET)
-    public ResponseEntity<String> findSearchResults(@RequestParam("filter") String filter,
+    @ApiOperation(value = "Get Search Results for Organism Status Tracking", response = Iterable.class)
+    @RequestMapping(value = "/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> findStatusSearchResults(@RequestParam("filter") String filter,
                                     @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
                                     @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
@@ -51,8 +59,9 @@ public class OrganismStatusTrackingController {
         return new ResponseEntity<String> (resp, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/filter/results", method = RequestMethod.POST)
-    public ResponseEntity<String> findFilterResults(@RequestBody String filter,
+    @ApiOperation(value = "Get Filtered Results for Organism Status Tracking", response = Iterable.class)
+    @RequestMapping(value = "/filter/results", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> findStatusFilterResults(@RequestBody String filter,
                                     @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
                                     @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
@@ -61,8 +70,9 @@ public class OrganismStatusTrackingController {
         return new ResponseEntity<String> (resp, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/organism", method = RequestMethod.GET)
-    public ResponseEntity<String> findBioSampleByOrganism(@RequestParam("name") String name,
+    @ApiOperation(value = "Get Organism Status Tracking", response = Iterable.class)
+    @RequestMapping(value = "/organism", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> findStatusByOrganism(@RequestParam("name") String name,
                                             @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
                                             @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                             @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,

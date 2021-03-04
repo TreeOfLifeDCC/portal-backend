@@ -1,7 +1,7 @@
 package com.dtol.platform;
 
-import com.dtol.platform.controller.OrganismController;
-import com.dtol.platform.controller.OrganismStatusTrackingController;
+import com.dtol.platform.controller.SecondaryOrganismsController;
+import com.dtol.platform.controller.StatusTrackingController;
 import com.dtol.platform.controller.RootOrganismController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,17 +13,17 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class PlatformApplicationSmokeTest {
 
     @Autowired
-    OrganismStatusTrackingController organismStatusTrackingController;
+    StatusTrackingController statusTrackingController;
 
     @Autowired
-    OrganismController organismController;
+    SecondaryOrganismsController organismController;
 
     @Autowired
     RootOrganismController rootOrganismController;
 
     @Test
     void contextLoads() throws Exception {
-        assertThat(organismStatusTrackingController).isNotNull();
+        assertThat(statusTrackingController).isNotNull();
         assertThat(organismController).isNotNull();
         assertThat(rootOrganismController).isNotNull();
     }

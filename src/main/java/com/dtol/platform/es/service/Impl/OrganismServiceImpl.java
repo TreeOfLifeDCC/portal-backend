@@ -1,6 +1,6 @@
 package com.dtol.platform.es.service.Impl;
 
-import com.dtol.platform.es.mapping.Organism;
+import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.OrganismRepository;
 import com.dtol.platform.es.service.OrganismService;
 import org.apache.commons.io.IOUtils;
@@ -47,7 +47,7 @@ public class OrganismServiceImpl implements OrganismService {
     private ElasticsearchOperations elasticsearchOperations;
 
     @Override
-    public List<Organism> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public List<SecondaryOrganism> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) {
         Pageable pageable = null;
         if (sortColumn.isPresent()) {
             if (sortOrder.get().equals("asc")) {
@@ -68,19 +68,19 @@ public class OrganismServiceImpl implements OrganismService {
             pageable = PageRequest.of(page, size);
         }
 
-        Page<Organism> pageObj = organismRepository.findAll(pageable);
+        Page<SecondaryOrganism> pageObj = organismRepository.findAll(pageable);
         return pageObj.toList();
     }
 
     @Override
-    public Organism findBioSampleByAccession(String accession) {
-        Organism organism = organismRepository.findBioSampleByAccession(accession);
-        return organism;
+    public SecondaryOrganism findBioSampleByAccession(String accession) {
+        SecondaryOrganism secondaryOrganism = organismRepository.findBioSampleByAccession(accession);
+        return secondaryOrganism;
     }
 
     @Override
-    public String saveBioSample(Organism organism) {
-        Organism bs = organismRepository.save(organism);
+    public String saveBioSample(SecondaryOrganism secondaryOrganism) {
+        SecondaryOrganism bs = organismRepository.save(secondaryOrganism);
         return bs.getAccession();
     }
 
@@ -95,17 +95,17 @@ public class OrganismServiceImpl implements OrganismService {
     }
 
     @Override
-    public Organism findBioSampleByOrganismByText(String organism) {
+    public SecondaryOrganism findBioSampleByOrganismByText(String organism) {
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(matchQuery("organism.text", organism).operator(Operator.AND))
                 .build();
-        SearchHits<Organism> bioSample = elasticsearchOperations
-                .search(searchQuery, Organism.class, IndexCoordinates.of("organisms_test"));
+        SearchHits<SecondaryOrganism> bioSample = elasticsearchOperations
+                .search(searchQuery, SecondaryOrganism.class, IndexCoordinates.of("organisms_test"));
 
         if (bioSample.getTotalHits() > 0) {
             return bioSample.getSearchHit(0).getContent();
         } else {
-            return new Organism();
+            return new SecondaryOrganism();
         }
     }
 

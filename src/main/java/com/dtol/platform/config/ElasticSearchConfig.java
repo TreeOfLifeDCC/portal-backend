@@ -1,4 +1,4 @@
-package com.dtol.platform.es.config;
+package com.dtol.platform.config;
 
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;

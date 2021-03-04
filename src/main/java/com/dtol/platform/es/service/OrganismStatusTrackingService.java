@@ -1,6 +1,6 @@
 package com.dtol.platform.es.service;
 
-import com.dtol.platform.es.mapping.OrganismStatusTracking;
+import com.dtol.platform.es.mapping.StatusTracking;
 import org.json.simple.JSONObject;
 
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface OrganismStatusTrackingService {
 
-    public List<OrganismStatusTracking> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
+    public List<StatusTracking> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
 
     public long getBiosampleStatusTrackingCount();
 

@@ -1,11 +1,11 @@
 package com.dtol.platform.es.repository;
 
-import com.dtol.platform.es.mapping.OrganismStatusTracking;
+import com.dtol.platform.es.mapping.StatusTracking;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface OrganismStatusTrackingRepository extends PagingAndSortingRepository<OrganismStatusTracking, String> {
+public interface OrganismStatusTrackingRepository extends PagingAndSortingRepository<StatusTracking, String> {
 
-    Page<OrganismStatusTracking> findAll(Pageable pageable);
+    Page<StatusTracking> findAll(Pageable pageable);
 }

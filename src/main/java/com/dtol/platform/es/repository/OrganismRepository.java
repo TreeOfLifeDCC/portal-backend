@@ -1,16 +1,16 @@
 package com.dtol.platform.es.repository;
 
-import com.dtol.platform.es.mapping.Organism;
+import com.dtol.platform.es.mapping.SecondaryOrganism;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface OrganismRepository extends PagingAndSortingRepository<Organism, String> {
+public interface OrganismRepository extends PagingAndSortingRepository<SecondaryOrganism, String> {
 
-    Page<Organism> findAll(Pageable pageable);
+    Page<SecondaryOrganism> findAll(Pageable pageable);
 
-    Organism save(Organism organism);
+    SecondaryOrganism save(SecondaryOrganism secondaryOrganism);
 
-    Organism findBioSampleByAccession(String accession);
+    SecondaryOrganism findBioSampleByAccession(String accession);
 
 }
