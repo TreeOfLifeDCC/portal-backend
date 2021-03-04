@@ -34,9 +34,9 @@ public class SecondaryOrganismTests {
         Optional<String> sortColumn = Optional.of("accession");
         Optional<String> sortOrder = Optional.of("asc");
 
-        when((organismService.findBioSampleByAccession(""))).thenReturn(secondaryOrganism);
+        when((organismService.findBioSampleByAccession("SAMEA994732"))).thenReturn(secondaryOrganism);
 
-        this.mockMvc.perform(get("/organisms")).andDo(print()).andExpect(status().isOk())
-                .andExpect(content().string(containsString("{\"count\":0,\"biosamples\":[]}")));
+        this.mockMvc.perform(get("/organisms/SAMEA994732")).andDo(print()).andExpect(status().isOk())
+                .andExpect(content().string(containsString("")));
     }
 }
