@@ -18,9 +18,4 @@ public class PlatformApplication {
         SpringApplication.run(PlatformApplication.class, args);
     }
 
-    @Bean
-    RouterFunction<ServerResponse> routerFunction() {
-        return route(GET("/api/documentation"), req ->
-                ServerResponse.temporaryRedirect(URI.create("/swagger-ui/index.html")).build());
-    }
 }
