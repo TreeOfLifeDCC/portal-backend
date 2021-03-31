@@ -34,12 +34,13 @@ public class TaxanomyController {
     }
 
     @ApiOperation(value = "View a list of Eukaryota child Taxanomies")
-    @RequestMapping(value = "/{rank}/child", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{rank}/child", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getChildTaxonomyRank(@RequestParam("filter") Optional<String> filter,
                                                        @PathVariable("rank") String rank,
                                                        @RequestParam("taxonomy") String taxonomy,
-                                                       @RequestParam("childRank") String childRank) throws ParseException {
-        String resp = taxanomyService.getChildTaxonomyRank(filter, rank, taxonomy, childRank);
+                                                       @RequestParam("childRank") String childRank,
+                                                       @RequestBody String taxaTree) throws ParseException {
+        String resp = taxanomyService.getChildTaxonomyRank(filter, rank, taxonomy, childRank, taxaTree);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 

@@ -86,17 +86,34 @@ public class TaxanomyServiceImpl implements TaxanomyService {
     }
 
     @Override
-    public String getChildTaxonomyRank(Optional<String> filter, String rank, String taxonomy, String childRank) throws ParseException {
+    public String getChildTaxonomyRank(Optional<String> filter, String rank, String taxonomy, String childRank, String tree) throws ParseException {
         StringBuilder sb = new StringBuilder();
         JSONObject resp = new JSONObject();
+        JSONArray taxaTree = (JSONArray) new JSONParser().parse(tree);
         sb.append("{");
         sb.append("'size':0,");
         sb.append("'query' : { 'bool' : { 'must' : [");
         sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
         sb.append("{ 'bool' : { 'must' : [");
-        sb.append("{ 'term' : { 'taxonomies.");
-        sb.append(rank + "': '" + taxonomy + "'");
-        sb.append("}}]}}}}");
+
+        for (int i = 0; i < taxaTree.size(); i++) {
+            JSONObject taxa = (JSONObject) taxaTree.get(i);
+            if (taxaTree.size() == 1) {
+                sb.append("{ 'term' : { 'taxonomies.");
+                sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
+            } else {
+                if (i == taxaTree.size() - 1) {
+                    sb.append("{ 'term' : { 'taxonomies.");
+                    sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
+                } else {
+                    sb.append("{ 'term' : { 'taxonomies.");
+                    sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}},");
+                }
+            }
+        }
+//        sb.append("{ 'term' : { 'taxonomies.");
+//        sb.append(rank + "': '" + taxonomy + "'}}");
+        sb.append("]}}}}");
         if (filter.isPresent()) {
             String[] filterArray = filter.get().split(",");
             if (filterArray.length > 0 && !filterArray[0].equals("")) {
