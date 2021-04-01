@@ -26,7 +26,7 @@ public class RootOrganismController {
     @Autowired
     RootSampleService rootSampleService;
 
-    @ApiOperation(value = "View a list of Root Organisms")
+    @ApiOperation(value = "View a list of Root Organisms", response = Iterable.class)
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HashMap<String, Object>> getAllRootOrganisms(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                                        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
@@ -40,21 +40,21 @@ public class RootOrganismController {
         return new ResponseEntity<HashMap<String, Object>>(response, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Root Organism By Name")
+    @ApiOperation(value = "Get Root Organism By Name", response = Iterable.class)
     @RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RootOrganism> getRootOrganismByName(@PathVariable("name") String name) {
         RootOrganism rs = rootSampleService.findRootSampleByOrganism(name);
         return new ResponseEntity<RootOrganism>(rs, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Filters for Filtering Root Organisms")
+    @ApiOperation(value = "Get Filters for Filtering Root Organisms", response = Iterable.class)
     @RequestMapping(value = "/root/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<JSONObject>>> getRootOrganismFilters() throws ParseException {
         Map<String, List<JSONObject>> resp = rootSampleService.getRootOrganismFilters();
         return new ResponseEntity<Map<String, List<JSONObject>>>(resp, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Filters for Filtering Secondary Organisms")
+    @ApiOperation(value = "Get Filters for Filtering Secondary Organisms", response = Iterable.class)
     @RequestMapping(value = "/secondary/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, JSONArray>> getSecondaryOrganismFilters(@RequestParam(name = "organism") String organism) throws ParseException {
         Map<String, JSONArray> resp = rootSampleService.getSecondaryOrganismFilters(organism);
@@ -62,7 +62,7 @@ public class RootOrganismController {
     }
 
 
-    @ApiOperation(value = "Get Filtered Results for Root Organisms")
+    @ApiOperation(value = "Get Filtered Results for Root Organisms", response = Iterable.class)
     @RequestMapping(value = "/root/filter/results", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getFilteredRootOrganisms(@RequestBody Optional<String> filter,
                                                            @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
@@ -74,7 +74,7 @@ public class RootOrganismController {
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Root Organism Search Results")
+    @ApiOperation(value = "Get Root Organism Search Results", response = Iterable.class)
     @RequestMapping(value = "/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findSearchResults(@RequestParam("filter") String filter,
                                                     @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,

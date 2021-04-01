@@ -26,7 +26,7 @@ public class StatusTrackingController {
     @Autowired
     OrganismStatusTrackingService organismStatusTrackingService;
 
-    @ApiOperation(value = "View a list of Organism Status Tracking")
+    @ApiOperation(value = "View a list of Organism Status Tracking", response = Iterable.class)
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HashMap<String, Object>> getOrganismStatuses(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                                               @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
@@ -41,13 +41,13 @@ public class StatusTrackingController {
 
     }
 
-    @ApiOperation(value = "Get Filters for Organism Status Tracking")
+    @ApiOperation(value = "Get Filters for Organism Status Tracking", response = Iterable.class)
     @RequestMapping(value = "/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, List<JSONObject>> getStatusFilters() {
         return organismStatusTrackingService.getFilters();
     }
 
-    @ApiOperation(value = "Get Search Results for Organism Status Tracking")
+    @ApiOperation(value = "Get Search Results for Organism Status Tracking", response = Iterable.class)
     @RequestMapping(value = "/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findStatusSearchResults(@RequestParam("filter") String filter,
                                     @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
@@ -59,7 +59,7 @@ public class StatusTrackingController {
         return new ResponseEntity<String> (resp, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Filtered Results for Organism Status Tracking")
+    @ApiOperation(value = "Get Filtered Results for Organism Status Tracking", response = Iterable.class)
     @RequestMapping(value = "/filter/results", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findStatusFilterResults(@RequestBody String filter,
                                     @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
@@ -70,7 +70,7 @@ public class StatusTrackingController {
         return new ResponseEntity<String> (resp, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Organism Status Tracking")
+    @ApiOperation(value = "Get Organism Status Tracking", response = Iterable.class)
     @RequestMapping(value = "/organism", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findStatusByOrganism(@RequestParam("name") String name,
                                             @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
