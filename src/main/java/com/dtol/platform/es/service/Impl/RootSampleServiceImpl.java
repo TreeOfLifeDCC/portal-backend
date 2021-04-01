@@ -140,11 +140,11 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public String findRootOrganismFilterResults(Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
+    public String findRootOrganismFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.getOrganismFilterQuery(filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
+        String query = this.getOrganismFilterQuery(filter, from.get(), size.get(), sortColumn, sortOrder);
         respString = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", query);
         return respString;
     }
@@ -216,61 +216,29 @@ public class RootSampleServiceImpl implements RootSampleService {
         return query;
     }
 
-    private String getOrganismFilterQuery(Optional<String> filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
+    private String getOrganismFilterQuery(String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
+        String[] filterArray = filter.split(",");
         StringBuilder sb = new StringBuilder();
-        StringBuilder sbt = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
-        JSONObject taxaJson = null;
 
         sb.append("{");
         if (!from.equals("undefined") && !size.equals("undefined"))
             sb.append("'from' :" + from + ",'size':" + size + ",");
         if (sort.length() != 0)
             sb.append(sort);
-        sb.append("'query' : { 'bool' : { 'must' : [");
+        sb.append("'query' : { 'bool' : { 'should' : [");
 
-        if(taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
-            String json = taxonomyFilter.get().toString();
-            if(!json.equals("")) {
-                taxaJson = (JSONObject) (new JSONParser().parse(json));
-                sbt.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                sbt.append("{ 'bool' : { 'must' : [");
-                sbt.append("{ 'term' : { 'taxonomies.");
-                sbt.append(taxaJson.get("rank") + "': '" + taxaJson.get("taxonomy") + "'");
-                sbt.append("}}]}}}}");
-            }
+        sb.append("{'terms' : {'trackingSystem':[");
+        for (int i = 0; i < filterArray.length; i++) {
+            if (i == 0)
+                sb.append("'" + filterArray[i] + "'");
+            else
+                sb.append(",'" + filterArray[i] + "'");
         }
-
-        if(filter.isPresent() && (!filter.get().equals("undefined") && !filter.get().equals(""))) {
-            String[] filterArray = filter.get().split(",");
-            if(sbt.toString().length() > 2) {
-                sb.append(sbt.toString()+",");
-            }
-            sb.append("{'terms' : {'trackingSystem':[");
-            for (int i = 0; i < filterArray.length; i++) {
-                if (i == 0)
-                    sb.append("'" + filterArray[i] + "'");
-                else
-                    sb.append(",'" + filterArray[i] + "'");
-            }
-            sb.append("]}}");
-            if(sbt.toString().length() > 2) {
-                sb.append(",");
-            }
-        }
-        sb.append(sbt.toString());
+        sb.append("]}}");
         sb.append("]}},");
 
         sb.append("'aggregations': {");
-        if(taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
-            String json = taxonomyFilter.get().toString();
-            if(!json.equals("")) {
-                sb.append("'filters': { 'nested': { 'path':'taxonomies'},");
-                sb.append("'aggs':{");
-                sb.append("'childRank':{'terms':{'field':'taxonomies." + taxaJson.get("childRank") + "', 'size': 20000}}");
-                sb.append("}},");
-            }
-        }
         sb.append("'trackingSystem': {'terms': {'field': 'trackingSystem'}}");
         sb.append("}");
 
