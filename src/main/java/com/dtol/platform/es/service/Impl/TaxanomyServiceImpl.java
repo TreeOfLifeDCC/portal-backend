@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -86,10 +87,17 @@ public class TaxanomyServiceImpl implements TaxanomyService {
     }
 
     @Override
-    public String getChildTaxonomyRank(Optional<String> filter, String rank, String taxonomy, String childRank, String tree) throws ParseException {
+    public String getChildTaxonomyRank(Optional<String> filter, String rank, String taxonomy, String childRank, String tree, String type) throws ParseException {
         StringBuilder sb = new StringBuilder();
+        StringBuilder filtersb = new StringBuilder();
         JSONObject resp = new JSONObject();
         JSONArray taxaTree = (JSONArray) new JSONParser().parse(tree);
+
+        JSONArray childDataArray = new JSONArray();
+        StringBuilder hasChildQuery = new StringBuilder();
+        StringBuilder hasChildFilterQuery = new StringBuilder();
+        String esURL = "http://" + esConnectionURL;
+
         sb.append("{");
         sb.append("'size':0,");
         sb.append("'query' : { 'bool' : { 'must' : [");
@@ -111,20 +119,90 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                 }
             }
         }
+
+//        TODO: Check if taxa has child append("]}}}}")
+        hasChildQuery.append(sb.toString());
+//        TODO: for checking if rank has child
+
         sb.append("]}}}}");
         if (filter.isPresent()) {
-            String[] filterArray = filter.get().split(",");
-            if (filterArray.length > 0 && !filterArray[0].equals("")) {
-                sb.append(",{'terms' : {'trackingSystem':[");
-                for (int i = 0; i < filterArray.length; i++) {
-                    if (i == 0)
-                        sb.append("'" + filterArray[i] + "'");
-                    else
-                        sb.append(",'" + filterArray[i] + "'");
+            if (type.equals("data")) {
+                esURL = esURL + "/data_portal_test/_search";
+                String[] filterArray = filter.get().split(",");
+                if (filterArray.length > 0 && !filterArray[0].equals("")) {
+                    filtersb.append(",{'terms' : {'trackingSystem':[");
+                    for (int i = 0; i < filterArray.length; i++) {
+                        if (i == 0)
+                            filtersb.append("'" + filterArray[i] + "'");
+                        else
+                            filtersb.append(",'" + filterArray[i] + "'");
+                    }
+                    filtersb.append("]}}");
                 }
-                sb.append("]}}");
+            } else if (type.equals("status")) {
+                esURL = esURL + "/statuses/_search";
+                String[] filterArray = filter.get().split(",");
+                if (filterArray.length > 0 && !filterArray[0].equals("")) {
+                    filtersb.append(",");
+                    for (int i = 0; i < filterArray.length; i++) {
+                        String[] splitArray = filterArray[i].split("-");
+                        if (splitArray[0].trim().equals("Biosamples")) {
+                            filtersb.append("{'terms' : {'biosamples':[");
+                            filtersb.append("'" + splitArray[1].trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        }
+                        else if (splitArray[0].trim().equals("Raw data")) {
+                            filtersb.append("{'terms' : {'raw_data':[");
+                            filtersb.append("'" + splitArray[1].trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        }
+                        else if (splitArray[0].trim().equals("Mapped reads")) {
+                            filtersb.append("{'terms' : {'mapped_reads':[");
+                            filtersb.append("'" + splitArray[1].trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        }
+                        else if (splitArray[0].trim().equals("Assemblies")) {
+                            filtersb.append("{'terms' : {'assemblies':[");
+                            filtersb.append("'" + splitArray[1].trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        }
+                        else if (splitArray[0].trim().equals("Annotation complete")) {
+                            filtersb.append("{'terms' : {'annotation_complete':[");
+                            filtersb.append("'" + splitArray[1].trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        }
+                        else if (splitArray[0].trim().equals("Annotation")) {
+                            filtersb.append("{'terms' : {'annotation':[");
+                            filtersb.append("'" + splitArray[1].trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        }
+                    }
+                }
             }
         }
+        sb.append(filtersb.toString());
+
+//        TODO: for checking if rank has child
+        hasChildFilterQuery.append(filtersb.toString());
+//        TODO: for checking if rank has child
 
         sb.append("]}},");
 
@@ -136,16 +214,45 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("}}");
         sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", query);
+        String respString = this.postRequest(esURL, query);
         JSONArray aggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters")).get("childRank")).get("buckets");
         JSONArray rootAggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters")).get("kingdomRank")).get("buckets");
         JSONObject childTaxa = new JSONObject();
         JSONObject rootAggregationObject = new JSONObject();
-        rootAggregationObject.put("parent","" );
+        rootAggregationObject.put("parent", "");
         rootAggregationObject.put("rank", "");
         rootAggregationObject.put("childData", rootAggregations);
         rootAggregationObject.put("expanded", false);
         childTaxa.put("rootAggregations", rootAggregationObject);
+
+//        if (!rank.equals("superkingdom")) {
+//            for (int i = 0; i < aggregations.size(); i++) {
+//                StringBuilder currentChildTaxaSb = new StringBuilder();
+//                JSONObject childObj = (JSONObject) aggregations.get(i);
+////TODO: Handle cases where child data length is greater than 1 and has Other, refer to FE for solution
+//
+//                if ((aggregations.size() == 1 && !childObj.get("key").toString().equals("Other")) || aggregations.size() > 1) {
+//                    currentChildTaxaSb.append(hasChildQuery.toString());
+//                    currentChildTaxaSb.append(",{ 'term' : { 'taxonomies.");
+//                    currentChildTaxaSb.append(childRank + "': '" + childObj.get("key") + "'}}");
+//                    currentChildTaxaSb.append("]}}}}");
+//                    currentChildTaxaSb.append(hasChildFilterQuery.toString());
+//                    currentChildTaxaSb.append("]}},");
+//
+//                    currentChildTaxaSb.append("'aggregations':{");
+//                    currentChildTaxaSb.append("'filters': { 'nested': { 'path':'taxonomies'},");
+//                    currentChildTaxaSb.append("'aggs':{");
+//                    currentChildTaxaSb.append("'childRank':{'terms':{'field':'taxonomies." + findChildRank(childRank) + "', 'size': 20000}}");
+//                    currentChildTaxaSb.append("}}");
+//                    currentChildTaxaSb.append("}}");
+//                    String childQuery = currentChildTaxaSb.toString().replaceAll("'", "\"");
+//                    System.out.println(childQuery);
+//                    String rsp = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", childQuery);
+//                    JSONArray childAgg = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(rsp)).get("aggregations")).get("filters")).get("childRank")).get("buckets");
+//                    System.out.println(childAgg);
+//                }
+//            }
+//        }
 
         childTaxa.put("parent", taxonomy);
         childTaxa.put("rank", childRank);
@@ -217,5 +324,19 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             }
         }
         return resp;
+    }
+
+    private String[] taxonomyArray() {
+        String[] arr = {"cellularorganism", "superkingdom", "kingdom", "subkingdom", "superphylum", "phylum", "subphylum", "superclass", "class", "subclass", "infraclass", "cohort", "subcohort", "superorder", "order", "parvorder", "suborder", "infraorder", "section", "subsection", "superfamily", "family", "subfamily", "tribe", "subtribe", "genus", "series", "subgenus", "species_group", "species_subgroup", "species", "subspecies", "varietas", "forma"};
+        return arr;
+    }
+
+    private String findChildRank(String rank) {
+        String[] rankArray = {"cellularorganism", "superkingdom", "kingdom", "subkingdom", "superphylum", "phylum", "subphylum", "superclass", "class", "subclass", "infraclass", "cohort", "subcohort", "superorder", "order", "parvorder", "suborder", "infraorder", "section", "subsection", "superfamily", "family", "subfamily", "tribe", "subtribe", "genus", "series", "subgenus", "species_group", "species_subgroup", "species", "subspecies", "varietas", "forma"};
+        int currIndex = Arrays.asList(rankArray).indexOf(rank);
+        if(!rank.equals("forma"))
+            return rankArray[currIndex + 1];
+        else
+            return "forma";
     }
 }

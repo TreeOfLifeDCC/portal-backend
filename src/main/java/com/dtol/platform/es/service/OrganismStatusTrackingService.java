@@ -2,6 +2,7 @@ package com.dtol.platform.es.service;
 
 import com.dtol.platform.es.mapping.StatusTracking;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ public interface OrganismStatusTrackingService {
 
     public String findSearchResult(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 
-    public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
+    public String findFilterResults(Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException;
 
     public String findBioSampleByOrganismByText(String search, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder);
 

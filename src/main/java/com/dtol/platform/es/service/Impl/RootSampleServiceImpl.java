@@ -259,9 +259,7 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         if (filter.isPresent() && (!filter.get().equals("undefined") && !filter.get().equals(""))) {
             String[] filterArray = filter.get().split(",");
-            if (sbt.toString().length() > 2) {
-                sb.append(sbt.toString() + ",");
-            }
+            sb.append(sbt.toString() + ",");
             sb.append("{'terms' : {'trackingSystem':[");
             for (int i = 0; i < filterArray.length; i++) {
                 if (i == 0)
@@ -270,12 +268,12 @@ public class RootSampleServiceImpl implements RootSampleService {
                     sb.append(",'" + filterArray[i] + "'");
             }
             sb.append("]}}");
-            if (sbt.toString().length() > 2) {
-                sb.append(",");
-            }
+            sb.append("]}},");
         }
-        sb.append(sbt.toString());
-        sb.append("]}},");
+        else {
+            sb.append(sbt.toString());
+            sb.append("]}},");
+        }
 
         sb.append("'aggregations': {");
         sb.append("'filters': { 'nested': { 'path':'taxonomies'},");

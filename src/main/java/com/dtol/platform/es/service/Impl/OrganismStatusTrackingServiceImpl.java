@@ -13,7 +13,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -170,12 +173,12 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     }
 
     @Override
-    public String findFilterResults(String filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder) {
+    public String findFilterResults(Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
         List<SecondaryOrganism> results = new ArrayList<SecondaryOrganism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder);
+        String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
         respString = this.postRequest("http://" + esConnectionURL + "/statuses/_search", query);
 
         return respString;
@@ -235,9 +238,9 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         return sort;
     }
 
-    private String filterQueryGenerator(String filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder) {
-        String[] filterArray = filter.split(",");
+    private String filterQueryGenerator(Optional<String> filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
         StringBuilder sb = new StringBuilder();
+        StringBuilder sbt = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
 
         sb.append("{");
@@ -247,38 +250,85 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
             sb.append(sort);
         sb.append("'query' : { 'bool' : { 'must' : [");
 
-        for (int i = 0; i < filterArray.length; i++) {
-            String[] splitArray = filterArray[i].split("-");
+        if (taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
+            String taxArray = taxonomyFilter.get().toString();
+            JSONArray taxaTree = (JSONArray) (new JSONParser().parse(taxArray));
 
-            if (splitArray[0].trim().equals("Biosamples")) {
-                sb.append("{'terms' : {'biosamples':[");
-                sb.append("'" + splitArray[1].trim() + "'");
-                sb.append("]}},");
-            } else if (splitArray[0].trim().equals("Raw data")) {
-                sb.append("{'terms' : {'raw_data':[");
-                sb.append("'" + splitArray[1].trim() + "'");
-                sb.append("]}},");
-            } else if (splitArray[0].trim().equals("Mapped reads")) {
-                sb.append("{'terms' : {'mapped_reads':[");
-                sb.append("'" + splitArray[1].trim() + "'");
-                sb.append("]}},");
-            } else if (splitArray[0].trim().equals("Assemblies")) {
-                sb.append("{'terms' : {'assemblies':[");
-                sb.append("'" + splitArray[1].trim() + "'");
-                sb.append("]}},");
-            } else if (splitArray[0].trim().equals("Annotation complete")) {
-                sb.append("{'terms' : {'annotation_complete':[");
-                sb.append("'" + splitArray[1].trim() + "'");
-                sb.append("]}},");
-            } else if (splitArray[0].trim().equals("Annotation")) {
-                sb.append("{'terms' : {'annotation':[");
-                sb.append("'" + splitArray[1].trim() + "'");
-                sb.append("]}},");
+            if (taxaTree.size() > 0) {
+                sbt.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                sbt.append("{ 'bool' : { 'must' : [");
+
+                for (int i = 0; i < taxaTree.size(); i++) {
+                    JSONObject taxa = (JSONObject) taxaTree.get(i);
+                    if (taxaTree.size() == 1) {
+                        sbt.append("{ 'term' : { 'taxonomies.");
+                        sbt.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
+                    } else {
+                        if (i == taxaTree.size() - 1) {
+                            sbt.append("{ 'term' : { 'taxonomies.");
+                            sbt.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
+                        } else {
+                            sbt.append("{ 'term' : { 'taxonomies.");
+                            sbt.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}},");
+                        }
+                    }
+                }
+
+                sbt.append("]}}}}");
             }
         }
-        sb.append("]}},");
+
+        if (filter.isPresent() && (!filter.get().equals("undefined") && !filter.get().equals(""))) {
+            String[] filterArray = filter.get().split(",");
+            sb.append(sbt.toString() + ",");
+            for (int i = 0; i < filterArray.length; i++) {
+                String[] splitArray = filterArray[i].split("-");
+
+                if (splitArray[0].trim().equals("Biosamples")) {
+                    sb.append("{'terms' : {'biosamples':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Raw data")) {
+                    sb.append("{'terms' : {'raw_data':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Mapped reads")) {
+                    sb.append("{'terms' : {'mapped_reads':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Assemblies")) {
+                    sb.append("{'terms' : {'assemblies':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Annotation complete")) {
+                    sb.append("{'terms' : {'annotation_complete':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Annotation")) {
+                    sb.append("{'terms' : {'annotation':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                }
+            }
+            sb.append("]}},");
+        } else {
+            sb.append(sbt.toString());
+            sb.append("]}},");
+        }
 
         sb.append("'aggregations': {");
+        sb.append("'filters': { 'nested': { 'path':'taxonomies'},");
+        sb.append("'aggs':{");
+        sb.append("'kingdomRank':{'terms':{'field':'taxonomies.kingdom', 'size': 20000}}");
+        if (taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
+            JSONArray taxaTree = (JSONArray) new JSONParser().parse(taxonomyFilter.get().toString());
+            if (taxaTree.size() > 0) {
+                JSONObject taxa = (JSONObject) taxaTree.get(taxaTree.size() - 1);
+                sb.append(",'childRank':{'terms':{'field':'taxonomies." + taxa.get("childRank") + "', 'size': 20000}}");
+            }
+        }
+        sb.append("}},");
+
         sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
         sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
