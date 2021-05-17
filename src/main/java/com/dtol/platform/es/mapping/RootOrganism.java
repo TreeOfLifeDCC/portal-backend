@@ -1,5 +1,6 @@
 package com.dtol.platform.es.mapping;
 
+import com.dtol.platform.es.mapping.DTO.AnnotationDTO;
 import com.dtol.platform.es.mapping.DTO.OrganismAssemblyDTO;
 import com.dtol.platform.es.mapping.DTO.OrganismExperimentDTO;
 import com.dtol.platform.es.mapping.DTO.RootOrganismRecordsDTO;
@@ -34,6 +35,9 @@ public class RootOrganism {
 
     @Field(name = "assemblies", type = FieldType.Nested)
     private List<OrganismAssemblyDTO> assemblies;
+
+    @Field(name = "annotation", type = FieldType.Nested)
+    private List<AnnotationDTO> annotation;
 
     public String getId() {
         return id;
@@ -89,5 +93,13 @@ public class RootOrganism {
 
     public void setAssemblies(List<OrganismAssemblyDTO> assemblies) {
         this.assemblies = assemblies;
+    }
+
+    public List<AnnotationDTO> getAnnotation() {
+        return annotation;
+    }
+
+    public void setAnnotation(List<AnnotationDTO> annotation) {
+        this.annotation = annotation;
     }
 }
