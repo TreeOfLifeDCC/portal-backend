@@ -30,21 +30,6 @@ public class TaxanomyServiceImpl implements TaxanomyService {
     String esConnectionURL;
 
     @Override
-    public String getAllTaxonomiesByType(String type) {
-        Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("'query' : { 'has_child' : { 'type' :'" + type + "',");
-        sb.append("'query' : {'match_all':{}");
-        sb.append("}}}}");
-
-        String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/ontology/_search", query);
-
-        return respString;
-    }
-
-    @Override
     public String findTaxanomiesByParent(String parent) {
         Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
         StringBuilder sb = new StringBuilder();

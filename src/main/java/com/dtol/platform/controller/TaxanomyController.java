@@ -20,13 +20,6 @@ public class TaxanomyController {
     @Autowired
     TaxanomyService taxanomyService;
 
-    @ApiOperation(value = "View a list of Eukaryota Taxanomies")
-    @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> getAllTaxonomies(@RequestParam("type") String type) {
-        String resp = taxanomyService.getAllTaxonomiesByType(type);
-        return new ResponseEntity<String>(resp, HttpStatus.OK);
-    }
-
     @ApiOperation(value = "View a list of Eukaryota child Taxanomies")
     @RequestMapping(value = "/{rank}/child", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getChildTaxonomyRank(@RequestParam("filter") Optional<String> filter,
