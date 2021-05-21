@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/taxonomy")
-@Api(tags = "Eukryota Taxonomies", description = "Controller for Taxonomy")
+@Api(tags = "Eukaryota Taxonomies", description = "Controller for Taxonomy")
 public class TaxanomyController {
 
     @Autowired
