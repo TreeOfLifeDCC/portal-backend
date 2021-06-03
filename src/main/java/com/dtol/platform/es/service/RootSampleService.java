@@ -11,9 +11,9 @@ import java.util.Optional;
 
 public interface RootSampleService {
 
-    public JSONArray findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException;
+    public List<RootOrganism> findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
 
-    public Map<String, JSONArray> getRootOrganismFilters() throws ParseException;
+    public Map<String, List<JSONObject>> getRootOrganismFilters();
 
     public Map<String, JSONArray> getSecondaryOrganismFilters(String organism) throws ParseException;
 

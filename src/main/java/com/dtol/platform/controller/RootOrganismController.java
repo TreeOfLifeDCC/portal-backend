@@ -31,9 +31,9 @@ public class RootOrganismController {
     public ResponseEntity<HashMap<String, Object>> getAllRootOrganisms(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                                        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
                                                                        @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
-                                                                       @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) throws ParseException {
+                                                                       @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
         HashMap<String, Object> response = new HashMap<>();
-        JSONArray resp = rootSampleService.findAllOrganisms(offset, limit, sortColumn, sortOrder);
+        List<RootOrganism> resp = rootSampleService.findAllOrganisms(offset, limit, sortColumn, sortOrder);
         long count = rootSampleService.getRootOrganismCount();
         response.put("rootSamples", resp);
         response.put("count", count);
@@ -49,9 +49,9 @@ public class RootOrganismController {
 
     @ApiOperation(value = "Get Filters for Filtering Root Organisms")
     @RequestMapping(value = "/root/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, JSONArray>> getRootOrganismFilters() throws ParseException {
-        Map<String, JSONArray> resp = rootSampleService.getRootOrganismFilters();
-        return new ResponseEntity<Map<String, JSONArray>>(resp, HttpStatus.OK);
+    public ResponseEntity<Map<String, List<JSONObject>>> getRootOrganismFilters() throws ParseException {
+        Map<String, List<JSONObject>> resp = rootSampleService.getRootOrganismFilters();
+        return new ResponseEntity<Map<String, List<JSONObject>>>(resp, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get Filters for Filtering Secondary Organisms")

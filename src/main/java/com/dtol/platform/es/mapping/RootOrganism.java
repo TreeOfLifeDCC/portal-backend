@@ -1,6 +1,9 @@
 package com.dtol.platform.es.mapping;
 
-import com.dtol.platform.es.mapping.DTO.*;
+import com.dtol.platform.es.mapping.DTO.AnnotationDTO;
+import com.dtol.platform.es.mapping.DTO.OrganismAssemblyDTO;
+import com.dtol.platform.es.mapping.DTO.OrganismExperimentDTO;
+import com.dtol.platform.es.mapping.DTO.RootOrganismRecordsDTO;
 import io.swagger.annotations.ApiModel;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -10,7 +13,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.util.List;
 
 @ApiModel(description = "Root Organism Model")
-@Document(indexName = "data_portal_index", createIndex = false, replicas = 2, shards = 1)
+@Document(indexName = "data_portal_test", createIndex = false, replicas = 2, shards = 1)
 public class RootOrganism {
     @Id
     String id;
@@ -21,8 +24,8 @@ public class RootOrganism {
     @Field(name = "organism", type = FieldType.Keyword)
     private String organism;
 
-    @Field(name = "trackingSystem", type = FieldType.Nested)
-    private TrackingStatusDTO trackingSystem;
+    @Field(name = "trackingSystem", type = FieldType.Keyword)
+    private String trackingSystem;
 
     @Field(name = "records", type = FieldType.Nested)
     private List<RootOrganismRecordsDTO> records;
@@ -60,11 +63,11 @@ public class RootOrganism {
         this.organism = organism;
     }
 
-    public TrackingStatusDTO getTrackingSystem() {
+    public String getTrackingSystem() {
         return trackingSystem;
     }
 
-    public void setTrackingSystem(TrackingStatusDTO trackingSystem) {
+    public void setTrackingSystem(String trackingSystem) {
         this.trackingSystem = trackingSystem;
     }
 

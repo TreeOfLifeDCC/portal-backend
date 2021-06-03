@@ -65,7 +65,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal_index/_search", query);
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
 
         return aggregations.toJSONString();
@@ -86,31 +86,21 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("{");
         sb.append("'size':0,");
         sb.append("'query' : { 'bool' : { 'must' : [");
+        sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+        sb.append("{ 'bool' : { 'must' : [");
 
         for (int i = 0; i < taxaTree.size(); i++) {
             JSONObject taxa = (JSONObject) taxaTree.get(i);
             if (taxaTree.size() == 1) {
-                sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                sb.append("{ 'nested' : { 'path': 'taxonomies."+taxa.get("rank")+"', 'query' : ");
-                sb.append("{ 'bool' : { 'must' : [");
                 sb.append("{ 'term' : { 'taxonomies.");
-                sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
-                sb.append("]}}}}}}");
+                sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
             } else {
                 if (i == taxaTree.size() - 1) {
-                    sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                    sb.append("{ 'nested' : { 'path': 'taxonomies."+taxa.get("rank")+"', 'query' : ");
-                    sb.append("{ 'bool' : { 'must' : [");
                     sb.append("{ 'term' : { 'taxonomies.");
-                    sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
-                    sb.append("]}}}}}}");
+                    sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
                 } else {
-                    sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                    sb.append("{ 'nested' : { 'path': 'taxonomies."+taxa.get("rank")+"', 'query' : ");
-                    sb.append("{ 'bool' : { 'must' : [");
                     sb.append("{ 'term' : { 'taxonomies.");
-                    sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
-                    sb.append("]}}}}}},");
+                    sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}},");
                 }
             }
         }
@@ -119,25 +109,20 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         hasChildQuery.append(sb.toString());
 //        TODO: for checking if rank has child
 
+        sb.append("]}}}}");
         if (filter.isPresent()) {
             if (type.equals("data")) {
-                esURL = esURL + "/data_portal_index/_search";
+                esURL = esURL + "/data_portal_test/_search";
                 String[] filterArray = filter.get().split(",");
                 if (filterArray.length > 0 && !filterArray[0].equals("")) {
-                    filtersb.append(",");
-                    filtersb.append("{ 'nested' : { 'path': 'trackingSystem', 'query' : ");
-                    filtersb.append("{ 'bool' : { 'must' : [");
-                    filtersb.append("{ 'terms' : { 'trackingSystem.status':[");
+                    filtersb.append(",{'terms' : {'trackingSystem':[");
                     for (int i = 0; i < filterArray.length; i++) {
-                        if (i == 0) {
+                        if (i == 0)
                             filtersb.append("'" + filterArray[i] + "'");
-                        }
-                        else {
+                        else
                             filtersb.append(",'" + filterArray[i] + "'");
-                        }
                     }
                     filtersb.append("]}}");
-                    filtersb.append("]}}}}");
                 }
             } else if (type.equals("status")) {
                 esURL = esURL + "/statuses/_search";
@@ -206,18 +191,17 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         sb.append("]}},");
 
-        sb.append("'aggregations': {");
-        sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
-        sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
-        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}},");
-        sb.append("'childRank': { 'nested': { 'path':'taxonomies."+ childRank+"'},");
-        sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies."+childRank+".scientificName', 'size': 20000},");
-        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies."+childRank+".commonName', 'size': 20000}}}}}}");
+        sb.append("'aggregations':{");
+        sb.append("'filters': { 'nested': { 'path':'taxonomies'},");
+        sb.append("'aggs':{");
+        sb.append("'kingdomRank':{'terms':{'field':'taxonomies.kingdom', 'size': 20000}},");
+        sb.append("'childRank':{'terms':{'field':'taxonomies." + childRank + "', 'size': 20000}}");
+        sb.append("}}");
         sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
         String respString = this.postRequest(esURL, query);
-        JSONArray aggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("childRank")).get("scientificName")).get("buckets");
-        JSONArray rootAggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("kingdomRank")).get("scientificName")).get("buckets");
+        JSONArray aggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters")).get("childRank")).get("buckets");
+        JSONArray rootAggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters")).get("kingdomRank")).get("buckets");
         JSONObject childTaxa = new JSONObject();
         JSONObject rootAggregationObject = new JSONObject();
         rootAggregationObject.put("parent", "");
@@ -248,7 +232,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 //                    currentChildTaxaSb.append("}}");
 //                    String childQuery = currentChildTaxaSb.toString().replaceAll("'", "\"");
 //                    System.out.println(childQuery);
-//                    String rsp = this.postRequest("http://" + esConnectionURL + "/data_portal_index/_search", childQuery);
+//                    String rsp = this.postRequest("http://" + esConnectionURL + "/data_portal_test/_search", childQuery);
 //                    JSONArray childAgg = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(rsp)).get("aggregations")).get("filters")).get("childRank")).get("buckets");
 //                    System.out.println(childAgg);
 //                }
