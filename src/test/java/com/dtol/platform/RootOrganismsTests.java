@@ -2,6 +2,8 @@ package com.dtol.platform;
 
 import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.service.RootSampleService;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,16 +34,18 @@ public class RootOrganismsTests {
 
     @Test
     void findAllRootSamples() throws Exception {
-        List<RootOrganism> emptySampleList = new ArrayList<RootOrganism>();
+        JSONArray emptySampleList = new JSONArray();
         emptySampleList.add(new RootOrganism());
 
         Optional<String> sortColumn = Optional.of("accession");
         Optional<String> sortOrder = Optional.of("asc");
+        JSONObject mockResp = new JSONObject();
+        mockResp.put("rootSamples", null);
+        mockResp.put("count", 0);
 
-        when((rootSampleService.findAllOrganisms(0,10, sortColumn, sortOrder))).thenReturn(emptySampleList);
-
+        when((rootSampleService.findAllOrganisms(0,10, sortColumn, sortOrder))).thenReturn((JSONArray) emptySampleList);
         this.mockMvc.perform(get("/root_organisms")).andDo(print()).andExpect(status().isOk())
-                .andExpect(content().string(containsString("{\"rootSamples\":[],\"count\":0}")));
+                .andExpect(content().string(containsString(mockResp.toString())));
     }
 
     @Test
@@ -49,11 +53,13 @@ public class RootOrganismsTests {
         RootOrganism organism = new RootOrganism();
         Optional<String> sortColumn = Optional.of("accession");
         Optional<String> sortOrder = Optional.of("asc");
-
+        JSONObject mockResp = new JSONObject();
+        mockResp.put("rootSamples", null);
+        mockResp.put("count", 0);
         when((rootSampleService.findRootSampleByOrganism(""))).thenReturn(organism);
 
         this.mockMvc.perform(get("/root_organisms/")).andDo(print()).andExpect(status().isOk())
-                .andExpect(content().string(containsString("{\"rootSamples\":[],\"count\":0}")));
+                .andExpect(content().string(containsString(mockResp.toString())));
     }
 
 }
