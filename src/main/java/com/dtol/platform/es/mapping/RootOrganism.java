@@ -36,6 +36,9 @@ public class RootOrganism {
     @Field(name = "annotation", type = FieldType.Nested)
     private List<AnnotationDTO> annotation;
 
+    @Field(name = "tax_id", type = FieldType.Keyword)
+    private String taxId;
+
     public String getId() {
         return id;
     }
@@ -98,5 +101,13 @@ public class RootOrganism {
 
     public void setAnnotation(List<AnnotationDTO> annotation) {
         this.annotation = annotation;
+    }
+
+    public String getTaxId() {
+        return taxId;
+    }
+
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
     }
 }
