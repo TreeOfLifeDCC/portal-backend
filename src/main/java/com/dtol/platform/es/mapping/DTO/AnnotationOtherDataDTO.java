@@ -6,13 +6,13 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class AnnotationOtherDataDTO {
 
     @Field(type = FieldType.Keyword)
-    String FTP_dumps;
+    String ftp_dumps;
 
-    public String getFTP_dumps() {
-        return FTP_dumps;
+    public String getFtp_dumps() {
+        return ftp_dumps;
     }
 
-    public void setFTP_dumps(String FTP_dumps) {
-        this.FTP_dumps = FTP_dumps;
+    public void setFtp_dumps(String ftp_dumps) {
+        this.ftp_dumps = ftp_dumps;
     }
 }
