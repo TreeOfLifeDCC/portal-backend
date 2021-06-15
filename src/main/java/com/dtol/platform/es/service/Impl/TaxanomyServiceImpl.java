@@ -88,7 +88,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("'query' : { 'bool' : { 'must' : [");
 
         if(type.equals("status")) {
-            esURL = esURL + "/statuses/_search";
+            esURL = esURL + "/statuses_index/_search";
             for (int i = 0; i < taxaTree.size(); i++) {
                 JSONObject taxa = (JSONObject) taxaTree.get(i);
                 if (taxaTree.size() == 1) {

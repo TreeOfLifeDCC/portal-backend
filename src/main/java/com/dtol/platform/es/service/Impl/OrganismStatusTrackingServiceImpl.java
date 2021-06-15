@@ -87,7 +87,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .withQuery(matchAllQuery())
                 .build();
         long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("statuses"));
+                .count(searchQuery, IndexCoordinates.of("statuses_index"));
         return count;
     }
 
@@ -105,7 +105,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 .addAggregation(terms("annotation").field("annotation").size(200))
                 .build();
         SearchHits<StatusTracking> searchHits = elasticsearchOperations.search(searchQuery, StatusTracking.class,
-                IndexCoordinates.of("statuses"));
+                IndexCoordinates.of("statuses_index"));
         Map<String, Aggregation> results = searchHits.getAggregations().asMap();
         ParsedStringTerms bioFilter = (ParsedStringTerms) results.get("biosamples");
         ParsedStringTerms rawFilter = (ParsedStringTerms) results.get("raw_data");
@@ -179,7 +179,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
-        respString = this.postRequest("http://" + esConnectionURL + "/statuses/_search", query);
+        respString = this.postRequest("http://" + esConnectionURL + "/statuses_index/_search", query);
 
         return respString;
     }
@@ -191,7 +191,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.searchQueryGenerator(search, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("http://" + esConnectionURL + "/statuses/_search", query);
+        respString = this.postRequest("http://" + esConnectionURL + "/statuses_index/_search", query);
 
         return respString;
     }

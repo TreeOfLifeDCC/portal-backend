@@ -8,7 +8,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @ApiModel(description = "Status Tracking Model")
-@Document(indexName = "statuses", createIndex = false, replicas = 2, shards = 1)
+@Document(indexName = "statuses_index", createIndex = false, replicas = 2, shards = 1)
 public class StatusTracking {
 
     @Id
