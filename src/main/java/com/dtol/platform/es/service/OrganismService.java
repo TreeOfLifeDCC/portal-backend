@@ -1,5 +1,6 @@
 package com.dtol.platform.es.service;
 
+import com.dtol.platform.statusUpdate.model.StatusUpdateDTO;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.ParseException;
@@ -25,4 +26,5 @@ public interface OrganismService {
     public String getOrganismByAccession(String accession);
 
     public String getSpecimenByAccession(String accession);
+
 }

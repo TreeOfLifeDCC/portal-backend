@@ -254,7 +254,6 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             sb.append("}}}}");
         }
         String query = sb.toString().replaceAll("'", "\"");
-        System.out.println(query);
         String respString = this.postRequest(esURL, query);
         JSONArray aggregations = null;
         JSONArray rootAggregations = null;

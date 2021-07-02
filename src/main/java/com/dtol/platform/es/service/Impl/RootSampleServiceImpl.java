@@ -75,7 +75,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("{'size':0, 'aggregations':{");
         sb.append("'trackingSystem': { 'nested': { 'path':'trackingSystem'},");
         sb.append("'aggs':{");
-        sb.append("'filter':{'terms':{'field':'trackingSystem.status', 'size': 20000}}");
+        sb.append("'filter':{'terms':{'field':'trackingSystem.status', 'order': { '_key' : 'desc' }}}");
         sb.append("}}");
         sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
