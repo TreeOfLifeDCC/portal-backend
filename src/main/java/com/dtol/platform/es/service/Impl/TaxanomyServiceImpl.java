@@ -88,37 +88,23 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("'query' : { 'bool' : { 'must' : [");
 
         if(type.equals("status")) {
-            esURL = esURL + "/statuses_index/_search";
-            for (int i = 0; i < taxaTree.size(); i++) {
-                JSONObject taxa = (JSONObject) taxaTree.get(i);
-                if (taxaTree.size() == 1) {
-                    sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                    sb.append("{ 'bool' : { 'must' : [");
-                    sb.append("{ 'term' : { 'taxonomies.");
-                    sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
-                    sb.append("]}}}}");
-                } else {
-                    if (i == taxaTree.size() - 1) {
-                        sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                        sb.append("{ 'bool' : { 'must' : [");
-                        sb.append("{ 'term' : { 'taxonomies.");
-                        sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
-                        sb.append("]}}}}");
-                    } else {
-                        sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                        sb.append("{ 'bool' : { 'must' : [");
-                        sb.append("{ 'term' : { 'taxonomies.");
-                        sb.append(taxa.get("rank") + "': '" + taxa.get("taxonomy") + "'}}");
-                        sb.append("]}}}},");
-                    }
-                }
-            }
+            esURL = esURL + "/tracking_status_index/_search";
         }
         else if (type.equals("data")) {
             esURL = esURL + "/data_portal_index/_search";
-            for (int i = 0; i < taxaTree.size(); i++) {
-                JSONObject taxa = (JSONObject) taxaTree.get(i);
-                if (taxaTree.size() == 1) {
+        }
+
+        for (int i = 0; i < taxaTree.size(); i++) {
+            JSONObject taxa = (JSONObject) taxaTree.get(i);
+            if (taxaTree.size() == 1) {
+                sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                sb.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
+                sb.append("{ 'bool' : { 'must' : [");
+                sb.append("{ 'term' : { 'taxonomies.");
+                sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
+                sb.append("]}}}}}}");
+            } else {
+                if (i == taxaTree.size() - 1) {
                     sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
                     sb.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
                     sb.append("{ 'bool' : { 'must' : [");
@@ -126,21 +112,12 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                     sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
                     sb.append("]}}}}}}");
                 } else {
-                    if (i == taxaTree.size() - 1) {
-                        sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                        sb.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
-                        sb.append("{ 'bool' : { 'must' : [");
-                        sb.append("{ 'term' : { 'taxonomies.");
-                        sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
-                        sb.append("]}}}}}}");
-                    } else {
-                        sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                        sb.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
-                        sb.append("{ 'bool' : { 'must' : [");
-                        sb.append("{ 'term' : { 'taxonomies.");
-                        sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
-                        sb.append("]}}}}}},");
-                    }
+                    sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                    sb.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
+                    sb.append("{ 'bool' : { 'must' : [");
+                    sb.append("{ 'term' : { 'taxonomies.");
+                    sb.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
+                    sb.append("]}}}}}},");
                 }
             }
         }
@@ -176,7 +153,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                     for (int i = 0; i < filterArray.length; i++) {
                         String[] splitArray = filterArray[i].split("-");
                         if (splitArray[0].trim().equals("Biosamples")) {
-                            filtersb.append("{'terms' : {'biosamples':[");
+                            filtersb.append("{'terms' : {'biosamples.keyword':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
@@ -184,7 +161,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}},");
                         }
                         else if (splitArray[0].trim().equals("Raw data")) {
-                            filtersb.append("{'terms' : {'raw_data':[");
+                            filtersb.append("{'terms' : {'raw_data.keyword':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
@@ -192,7 +169,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}},");
                         }
                         else if (splitArray[0].trim().equals("Mapped reads")) {
-                            filtersb.append("{'terms' : {'mapped_reads':[");
+                            filtersb.append("{'terms' : {'mapped_reads.keyword':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
@@ -200,7 +177,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}},");
                         }
                         else if (splitArray[0].trim().equals("Assemblies")) {
-                            filtersb.append("{'terms' : {'assemblies':[");
+                            filtersb.append("{'terms' : {'assemblies.keyword':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
@@ -208,7 +185,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}},");
                         }
                         else if (splitArray[0].trim().equals("Annotation complete")) {
-                            filtersb.append("{'terms' : {'annotation_complete':[");
+                            filtersb.append("{'terms' : {'annotation_complete.keyword':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
@@ -216,7 +193,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}},");
                         }
                         else if (splitArray[0].trim().equals("Annotation")) {
-                            filtersb.append("{'terms' : {'annotation':[");
+                            filtersb.append("{'terms' : {'annotation.keyword':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
@@ -235,36 +212,20 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         sb.append("]}},");
 
-        if (type.equals("data")) {
-            sb.append("'aggregations': {");
-            sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
-            sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
-            sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}},");
-            sb.append("'childRank': { 'nested': { 'path':'taxonomies." + childRank + "'},");
-            sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies." + childRank + ".scientificName', 'size': 20000},");
-            sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + childRank + ".commonName', 'size': 20000}}}}}}");
-            sb.append("}}");
-        }
-        else if (type.equals("status")) {
-            sb.append("'aggregations':{");
-            sb.append("'filters': { 'nested': { 'path':'taxonomies'},");
-            sb.append("'aggs':{");
-            sb.append("'kingdomRank':{'terms':{'field':'taxonomies.kingdom', 'size': 20000}},");
-            sb.append("'childRank':{'terms':{'field':'taxonomies." + childRank + "', 'size': 20000}}");
-            sb.append("}}}}");
-        }
+        sb.append("'aggregations': {");
+        sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
+        sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}},");
+        sb.append("'childRank': { 'nested': { 'path':'taxonomies." + childRank + "'},");
+        sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies." + childRank + ".scientificName', 'size': 20000},");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + childRank + ".commonName', 'size': 20000}}}}}}");
+        sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
         String respString = this.postRequest(esURL, query);
         JSONArray aggregations = null;
         JSONArray rootAggregations = null;
-        if (type.equals("data")) {
-            aggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("childRank")).get("scientificName")).get("buckets");
-            rootAggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("kingdomRank")).get("scientificName")).get("buckets");
-        }
-        else if (type.equals("status")) {
-            aggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters")).get("childRank")).get("buckets");
-            rootAggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters")).get("kingdomRank")).get("buckets");
-        }
+        aggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("childRank")).get("scientificName")).get("buckets");
+        rootAggregations = (JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("kingdomRank")).get("scientificName")).get("buckets");
         JSONObject childTaxa = new JSONObject();
         JSONObject rootAggregationObject = new JSONObject();
         rootAggregationObject.put("parent", "");

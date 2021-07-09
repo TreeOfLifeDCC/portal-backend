@@ -4,6 +4,7 @@ import com.dtol.platform.es.mapping.StatusTracking;
 import com.dtol.platform.es.service.OrganismStatusTrackingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,9 @@ public class StatusTrackingController {
     public ResponseEntity<HashMap<String, Object>> getOrganismStatuses(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                                        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
                                                                        @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
-                                                                       @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
+                                                                       @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) throws ParseException {
         HashMap<String, Object> response = new HashMap<>();
-        List<StatusTracking> resp = organismStatusTrackingService.findAll(offset, limit, sortColumn, sortOrder);
+        JSONArray resp = organismStatusTrackingService.findAll(offset, limit, sortColumn, sortOrder);
         long count = organismStatusTrackingService.getBiosampleStatusTrackingCount();
         response.put("biosampleStatus", resp);
         response.put("count", count);
@@ -42,7 +43,7 @@ public class StatusTrackingController {
 
     @ApiOperation(value = "Get Filters for Organism Status Tracking")
     @RequestMapping(value = "/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, List<JSONObject>> getStatusFilters() {
+    public Map<String, List<JSONObject>> getStatusFilters() throws ParseException {
         return organismStatusTrackingService.getFilters();
     }
 

@@ -1,5 +1,6 @@
 package com.dtol.platform.es.mapping;
 
+import com.dtol.platform.es.mapping.DTO.TrackingStatusDTO;
 import io.swagger.annotations.ApiModel;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
@@ -8,7 +9,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @ApiModel(description = "Status Tracking Model")
-@Document(indexName = "statuses_index", createIndex = false, replicas = 2, shards = 1)
+@Document(indexName = "tracking_status_index", createIndex = false, replicas = 2, shards = 1)
 public class StatusTracking {
 
     @Id
@@ -46,6 +47,11 @@ public class StatusTracking {
 
     @Field(name="raw_data", type = FieldType.Keyword)
     private String raw_data;
+
+    @Field(name = "trackingSystem", type = FieldType.Nested)
+    private TrackingStatusDTO trackingSystem;
+
+
 
     public String getId() {
         return Id;
