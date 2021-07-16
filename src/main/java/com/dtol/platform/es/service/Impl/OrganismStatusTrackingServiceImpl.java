@@ -194,7 +194,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
             JSONObject obj = (JSONObject) trackFilterArray.get(i);
             JSONObject trackObj = (JSONObject) ((JSONArray) ((JSONObject) (obj).get("name")).get("buckets")).get(0);
             String name = "";
-            if (trackObj.get("key").toString().equals("biosamples..")) {
+            if (trackObj.get("key").toString().equals("biosamples")) {
                 name = "Biosamples";
             } else if (trackObj.get("key").toString().equals("mapped_reads")) {
                 name = "Mapped reads";
@@ -380,18 +380,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
             sb.append("]}},");
         }
 
-//        sb.append("'aggregations': {");
-//        sb.append("'filters': { 'nested': { 'path':'taxonomies'},");
-//        sb.append("'aggs':{");
-//        sb.append("'kingdomRank':{'terms':{'field':'taxonomies.kingdom', 'size': 20000}}");
-//        if (taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
-//            JSONArray taxaTree = (JSONArray) new JSONParser().parse(taxonomyFilter.get().toString());
-//            if (taxaTree.size() > 0) {
-//                JSONObject taxa = (JSONObject) taxaTree.get(taxaTree.size() - 1);
-//                sb.append(",'childRank':{'terms':{'field':'taxonomies." + taxa.get("childRank") + "', 'size': 20000}}");
-//            }
-//        }
-//        sb.append("}},");
         sb.append("'aggregations': {");
         sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
