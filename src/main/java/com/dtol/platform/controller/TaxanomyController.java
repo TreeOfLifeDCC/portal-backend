@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -36,6 +37,14 @@ public class TaxanomyController {
     @RequestMapping(value = "/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getTaxonomyFilters(@RequestParam("taxonomy") Optional<String> taxonomy) throws ParseException {
         String resp = taxanomyService.getTaxonomicRanksAndCounts(taxonomy);
+        return new ResponseEntity<String>(resp, HttpStatus.OK);
+    }
+
+    @CrossOrigin()
+    @ApiOperation(value = "Get Phylogenetic Tree")
+    @RequestMapping(value = "/tree", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getPhylogeneticTree() throws ParseException {
+        String resp = taxanomyService.getPhylogeneticTree();
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 }

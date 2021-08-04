@@ -11,16 +11,18 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Transactional
@@ -28,6 +30,9 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
+
+    @Autowired
+    Driver driver;
 
     @Override
     public String findTaxanomiesByParent(String parent) {
@@ -270,6 +275,41 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         resp.put(rank, childTaxa);
         return resp.toJSONString();
+    }
+
+    @Override
+    public String getPhylogeneticTree() {
+        try (Session session = driver.session()) {
+            String query ="MATCH (parent:Taxonomies {parentId: 0})-[:CHILD]->(child:Taxonomies) "+
+            "WITH child "+
+            "MATCH childPath=(child)-[:CHILD*0..]->(subChild) "+
+            "with childPath  "+
+            ",CASE WHEN subChild:Taxonomies THEN subChild.id END as orderField order by orderField "+
+            "with collect(childPath) as paths "+
+            "CALL apoc.convert.toTree(paths) yield value "+
+            "RETURN value";
+            Result result = session.run(query);
+            List<Record> records = result.list();
+            for(Record record: records) {
+                record.keys().forEach(r -> r = "\""+r+"\"");
+            }
+            String response = records.toString();
+            response = response.replaceAll("Record<\\{value:","");
+            response = response.replaceAll(">","");
+            response = response.replaceAll(", ",", \"");
+            response = response.replaceAll(":","\":");
+            response = response.replaceAll("size","\"size");
+            response = response.replaceAll("'","\"");
+            response = response.replaceAll("\"\\{","{");
+            response = response.replaceAll("\" \\{","{");
+            response = response.replaceAll("]}},","]},");
+            response = response.replaceAll("child","children");
+            response = "{'name': 'Eukaryota', 'children':"+response+"}";
+            response = response.replaceAll("'", "\"");
+            response = response.substring(0, response.length() -3);
+            response = response + "]}";
+            return response;
+        }
     }
 
     private void getNestedOntologyAggregations(StringBuilder sb) {
