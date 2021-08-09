@@ -39,6 +39,8 @@ public class OrganismExperimentDTO {
     private String library_source;
     @Field(type = FieldType.Keyword)
     private String library_strategy;
+    @Field(type = FieldType.Keyword)
+    private String library_construction_protocol;
 
     public String getStudy_accession() {
         return study_accession;
@@ -166,5 +168,13 @@ public class OrganismExperimentDTO {
 
     public void setLibrary_strategy(String library_strategy) {
         this.library_strategy = library_strategy;
+    }
+
+    public String getLibrary_construction_protocol() {
+        return library_construction_protocol;
+    }
+
+    public void setLibrary_construction_protocol(String library_construction_protocol) {
+        this.library_construction_protocol = library_construction_protocol;
     }
 }
