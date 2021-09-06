@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.HashMap;
 import java.util.List;
@@ -72,6 +73,7 @@ public class StatusTrackingController {
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 
+    @ApiIgnore
     @ApiOperation(value = "Get Organism Status Tracking")
     @RequestMapping(value = "/organism", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findStatusByOrganism(@ApiParam(example = "lutra") @RequestParam("name") String name,
