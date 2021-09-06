@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ public class SecondaryOrganismsController {
         return new ResponseEntity<String> (rs, HttpStatus.OK);
     }
 
+    @ApiIgnore
     @ApiOperation(value = "Get Filters for Secondary Organisms")
     @RequestMapping(value = "/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, JSONArray>> getSecondaryOrganismFilters(@ApiParam(example = "SAMEA8104413") @RequestParam(name = "accession") String accession) throws ParseException {
