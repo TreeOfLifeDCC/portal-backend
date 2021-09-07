@@ -39,6 +39,9 @@ public class RootOrganism {
     @Field(name = "tax_id", type = FieldType.Keyword)
     private String taxId;
 
+    @Field(name = "tolid", type = FieldType.Keyword)
+    private String tolid;
+
     public String getId() {
         return id;
     }
@@ -109,5 +112,13 @@ public class RootOrganism {
 
     public void setTaxId(String taxId) {
         this.taxId = taxId;
+    }
+
+    public String getTolid() {
+        return tolid;
+    }
+
+    public void setTolid(String tolid) {
+        this.tolid = tolid;
     }
 }
