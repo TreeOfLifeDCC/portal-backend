@@ -318,7 +318,6 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                 Map<String, Object> map = new HashMap<>();
                 map = record.asMap();
                 String recordString = new Gson().toJson(map.get("value"));
-                recordString.replaceAll("child","children");
                 JSONParser parser = new JSONParser();
                 JSONObject json = (JSONObject) parser.parse(recordString);
                 resultList.add(json);
@@ -332,8 +331,9 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-        return root.toJSONString();
+        String response = root.toJSONString();
+        response.replaceAll("child","children");
+        return response;
     }
 
     private void getNestedOntologyAggregations(StringBuilder sb) {
