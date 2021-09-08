@@ -281,6 +281,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
     @Override
     public String getPhylogeneticTree() {
         JSONArray resultList = new JSONArray();
+        JSONObject root = new JSONObject();
         try (Session session = driver.session()) {
             String query ="MATCH (parent:Taxonomies {parentId: 0})-[:CHILD]->(child:Taxonomies) "+
             "WITH child "+
@@ -321,12 +322,17 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                 JSONObject json = (JSONObject) parser.parse(ss);
                 resultList.add(json);
             }
+            root.put("id", 1);
+            root.put("name", "Eukaryota");
+            root.put("parentId", 0);
+            root.put("commonName", "eucaryotes");
+            root.put("children", resultList);
 
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        return resultList.toJSONString();
+        return root.toJSONString();
     }
 
     private void getNestedOntologyAggregations(StringBuilder sb) {
