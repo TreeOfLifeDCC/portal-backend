@@ -317,9 +317,10 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                 Record record = result.next();
                 Map<String, Object> map = new HashMap<>();
                 map = record.asMap();
-                String ss = new Gson().toJson(map.get("value"));
+                String recordString = new Gson().toJson(map.get("value"));
+                recordString.replaceAll("child","children");
                 JSONParser parser = new JSONParser();
-                JSONObject json = (JSONObject) parser.parse(ss);
+                JSONObject json = (JSONObject) parser.parse(recordString);
                 resultList.add(json);
             }
             root.put("id", 1);
