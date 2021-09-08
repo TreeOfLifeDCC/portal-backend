@@ -326,13 +326,13 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             root.put("name", "Eukaryota");
             root.put("parentId", 0);
             root.put("commonName", "eucaryotes");
-            root.put("children", resultList);
+            root.put("child", resultList);
 
         } catch (ParseException e) {
             e.printStackTrace();
         }
         String response = root.toJSONString();
-        response.replaceAll("child","children");
+        response = response.replaceAll("child","children");
         return response;
     }
 
