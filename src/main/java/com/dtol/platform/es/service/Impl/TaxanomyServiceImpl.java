@@ -62,7 +62,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             sb.append("'size':0,");
             sb.append("'query' : { 'nested' : { 'path': 'taxonomies', 'query' : ");
             sb.append("{ 'query_string' : { 'query' : '");
-            sb.append(taxonomy.get() + "'");
+            sb.append( "'");
             sb.append("}}}},");
         }
 

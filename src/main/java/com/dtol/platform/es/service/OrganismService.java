@@ -1,30 +1,39 @@
 package com.dtol.platform.es.service;
 
+import com.dtol.platform.es.mapping.DTO.GeoLocationDTO;
+import com.dtol.platform.es.mapping.GeoLocationOrganism;
 import com.dtol.platform.statusUpdate.model.StatusUpdateDTO;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface OrganismService {
 
-    public List<SecondaryOrganism> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
+     List<SecondaryOrganism> findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder);
 
-    public SecondaryOrganism findBioSampleByAccession(String accession);
+     SecondaryOrganism findBioSampleByAccession(String accession);
 
-    public String saveBioSample(SecondaryOrganism secondaryOrganism);
+     String saveBioSample(SecondaryOrganism secondaryOrganism);
 
-    public long getBiosampleCount();
+     long getBiosampleCount();
 
-    public SecondaryOrganism findBioSampleByOrganismByText(String organism);
+     SecondaryOrganism findBioSampleByOrganismByText(String organism);
 
-    public Map<String, JSONArray> getSpecimensFilters(String accession) throws ParseException;
+     Map<String, JSONArray> getSpecimensFilters(String accession) throws ParseException;
 
-    public String getOrganismByAccession(String accession);
+     String getOrganismByAccession(String accession);
 
-    public String getSpecimenByAccession(String accession);
+     String getSpecimenByAccession(String accession);
 
+     ArrayList<GeoLocationDTO> getOrganismsLocations();
+
+     Map<String, List<JSONObject>> getCountOrganismParts();
+
+     Map<String, List<JSONObject>> getFirstPublicCount();
 }

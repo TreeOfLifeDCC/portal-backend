@@ -166,7 +166,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 }
             } else {
                 if(sortColumn.get().toString().equals("trackingSystem")) {
-                    sort.append("{'trackingSystem.desc':{'order':'desc','nested_path':'trackingSystem'}}");
+                    sort.append("{'trackingSystem.rank':{'order':'desc','nested_path':'trackingSystem'}}");
                 }
                 else {
                     sort.append("{'" + sortColumn.get() + "':'desc'}");
