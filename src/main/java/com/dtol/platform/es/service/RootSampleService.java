@@ -39,6 +39,4 @@ public interface RootSampleService {
 
     public JSONArray findSampleAccessionByOrganism(String organism) throws ParseException;
 
-
-
 }

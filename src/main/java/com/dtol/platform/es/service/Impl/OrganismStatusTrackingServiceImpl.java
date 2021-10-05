@@ -214,7 +214,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 JSONObject temp = (JSONObject) arr.get(j);
                 JSONObject filterObj = new JSONObject();
                 filterObj.put("key", name + " - " + temp.get("key"));
-                filterObj.put("doc_count", temp.get("z"));
+                filterObj.put("doc_count", temp.get("doc_count"));
                 statusArray.add(filterObj);
             }
             filterMap.put(trackObj.get("key").toString(), statusArray);

@@ -1,11 +1,9 @@
 package com.dtol.platform.controller;
 
 import com.dtol.platform.es.mapping.DTO.GeoLocationDTO;
-import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.service.OrganismService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.v3.oas.annotations.Hidden;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -15,7 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/organisms")
@@ -29,7 +28,7 @@ public class SecondaryOrganismsController {
     @RequestMapping(value = "/{accession}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getSecondaryOrganismByAccession(@PathVariable("accession") String accession) {
         String rs = organismService.getOrganismByAccession(accession);
-        return new ResponseEntity<String> (rs, HttpStatus.OK);
+        return new ResponseEntity<String>(rs, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get Filters for Secondary Organisms")
@@ -43,7 +42,7 @@ public class SecondaryOrganismsController {
     @RequestMapping(value = "/specimen/{accession}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getSpecimenByAccession(@PathVariable("accession") String accession) {
         String rs = organismService.getSpecimenByAccession(accession);
-        return new ResponseEntity<String> (rs, HttpStatus.OK);
+        return new ResponseEntity<String>(rs, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get Organisms geo location")

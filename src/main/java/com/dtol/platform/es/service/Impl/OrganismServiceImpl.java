@@ -1,6 +1,5 @@
 package com.dtol.platform.es.service.Impl;
 
-import antlr.StringUtils;
 import com.dtol.platform.es.mapping.DTO.GeoLocationDTO;
 import com.dtol.platform.es.mapping.DTO.GeoLocationResponseDTO;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
@@ -237,12 +236,12 @@ public class OrganismServiceImpl implements OrganismService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        resultMap.put("habitat",(JSONArray)((JSONObject)aggregations.get("habitat")).get("buckets"));
-        resultMap.put("sex",(JSONArray)((JSONObject)aggregations.get("sex")).get("buckets"));
+        resultMap.put("habitat", (JSONArray) ((JSONObject) aggregations.get("habitat")).get("buckets"));
+        resultMap.put("sex", (JSONArray) ((JSONObject) aggregations.get("sex")).get("buckets"));
 
-        resultMap.put("lifestage",(JSONArray)((JSONObject)aggregations.get("lifestage")).get("buckets"));
+        resultMap.put("lifestage", (JSONArray) ((JSONObject) aggregations.get("lifestage")).get("buckets"));
 
-        resultMap.put("organismPart",(JSONArray)((JSONObject)aggregations.get("organismPart")).get("buckets"));
+        resultMap.put("organismPart", (JSONArray) ((JSONObject) aggregations.get("organismPart")).get("buckets"));
 
         return resultMap;
     }
@@ -261,11 +260,11 @@ public class OrganismServiceImpl implements OrganismService {
         String respString = this.postRequest("http://" + esConnectionURL + "/data_portal_index/_search", query);
         JSONObject aggregations = null;
         try {
-            aggregations = (JSONObject) ((JSONObject)((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
+            aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        resultMap.put("firstPublic",(JSONArray)((JSONObject)aggregations.get("firstPublic")).get("buckets"));
+        resultMap.put("firstPublic", (JSONArray) ((JSONObject) aggregations.get("firstPublic")).get("buckets"));
 
         return resultMap;
     }
@@ -283,9 +282,6 @@ public class OrganismServiceImpl implements OrganismService {
             CloseableHttpResponse rs = client.execute(httpPost);
             InputStream st = rs.getEntity().getContent();
             resp = IOUtils.toString(st, StandardCharsets.UTF_8.name());
-
-//            SearchResponse resoponse = new ObjectMapper().readValue(st, SearchResponse.class);
-//            System.out.print(resoponse.getHits());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
