@@ -1,5 +1,6 @@
 package com.dtol.platform.es.service;
 
+import com.dtol.platform.es.mapping.DTO.ENAFirstPublicDataResponseDTO;
 import com.dtol.platform.es.mapping.DTO.GeoLocationDTO;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import org.json.simple.JSONArray;
@@ -33,5 +34,5 @@ public interface OrganismService {
 
     Map<String, List<JSONObject>> getCountOrganismParts();
 
-    Map<String, List<JSONObject>> getFirstPublicCount();
+    List<ENAFirstPublicDataResponseDTO> getFirstPublicCount();
 }

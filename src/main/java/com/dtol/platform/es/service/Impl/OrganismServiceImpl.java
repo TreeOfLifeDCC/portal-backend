@@ -1,5 +1,6 @@
 package com.dtol.platform.es.service.Impl;
 
+import com.dtol.platform.es.mapping.DTO.ENAFirstPublicDataResponseDTO;
 import com.dtol.platform.es.mapping.DTO.GeoLocationDTO;
 import com.dtol.platform.es.mapping.DTO.GeoLocationResponseDTO;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
@@ -247,7 +249,7 @@ public class OrganismServiceImpl implements OrganismService {
     }
 
     @Override
-    public Map<String, List<JSONObject>> getFirstPublicCount() {
+    public List<ENAFirstPublicDataResponseDTO> getFirstPublicCount() {
         Map<String, List<JSONObject>> resultMap = new HashMap<>();
         StringBuilder sb = new StringBuilder();
         sb.append("{'size':0,");
@@ -264,9 +266,26 @@ public class OrganismServiceImpl implements OrganismService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        resultMap.put("firstPublic", (JSONArray) ((JSONObject) aggregations.get("firstPublic")).get("buckets"));
+        ArrayList<ENAFirstPublicDataResponseDTO> response = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String strDate = "2000-01-01";
 
-        return resultMap;
+        JSONArray data = (JSONArray) ((JSONObject) aggregations.get("firstPublic")).get("buckets");
+        ObjectMapper mapper = new ObjectMapper();
+        data.forEach(dataObject -> {
+            JSONObject jObject = (JSONObject) dataObject;
+            try {
+                response.add(ENAFirstPublicDataResponseDTO.builder().count((Long) jObject.get("doc_count")).enaFirstPublicInDate(sdf.parse((String) jObject.get("key"))).build());
+
+            } catch (java.text.ParseException e) {
+                e.printStackTrace();
+            }
+        });
+        Collections.sort(response,  (o1, o2) -> o2.getEnaFirstPublicInDate().compareTo(o1.getEnaFirstPublicInDate()));
+        response.forEach(data1->{
+            data1.setEnaFirstPublic(sdf.format(data1.getEnaFirstPublicInDate()));
+        });
+        return response;
     }
 
     private String postRequest(String baseURL, String body) {

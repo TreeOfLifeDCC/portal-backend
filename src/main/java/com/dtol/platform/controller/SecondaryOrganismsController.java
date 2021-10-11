@@ -1,5 +1,6 @@
 package com.dtol.platform.controller;
 
+import com.dtol.platform.es.mapping.DTO.ENAFirstPublicDataResponseDTO;
 import com.dtol.platform.es.mapping.DTO.GeoLocationDTO;
 import com.dtol.platform.es.service.OrganismService;
 import io.swagger.annotations.Api;
@@ -46,20 +47,20 @@ public class SecondaryOrganismsController {
     }
 
     @ApiOperation(value = "Get Organisms geo location")
-    @RequestMapping(value = "/geo-locations", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/get-geo-locations", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<GeoLocationDTO> getOrganismsLocations() {
         return organismService.getOrganismsLocations();
     }
 
     @ApiOperation(value = "Get Organisms part count")
-    @RequestMapping(value = "/count-organism-parts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/get-pie-chart-data", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, List<JSONObject>> getCountOrganismParts() {
         return organismService.getCountOrganismParts();
     }
 
     @ApiOperation(value = "Get Organisms part count")
-    @RequestMapping(value = "/count-first-public", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, List<JSONObject>> getFirstPublicCount() {
+    @RequestMapping(value = "/get-count-first-public", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<ENAFirstPublicDataResponseDTO> getFirstPublicCount() {
         return organismService.getFirstPublicCount();
     }
 
