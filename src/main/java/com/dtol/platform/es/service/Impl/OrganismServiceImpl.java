@@ -151,7 +151,6 @@ public class OrganismServiceImpl implements OrganismService {
         Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append("'size':0,");
         sb.append("'query' : { 'bool' : { 'must' : [");
         sb.append("{'terms' : {'accession.keyword':['");
         sb.append(accession);
