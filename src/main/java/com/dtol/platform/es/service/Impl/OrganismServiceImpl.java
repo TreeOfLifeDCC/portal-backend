@@ -225,7 +225,7 @@ public class OrganismServiceImpl implements OrganismService {
         Map<String, List<JSONObject>> resultMap = new HashMap<>();
         StringBuilder sb = new StringBuilder();
 
-        sb.append("{ 'size' : 0, 'aggregations':{ 'organismPart': {'terms':{'field':'organismPart.keyword'}},");
+        sb.append("{ 'aggregations':{ 'organismPart': {'terms':{'field':'organismPart.keyword'}},");
         sb.append(" 'lifestage': {'terms':{'field':'lifestage.keyword'}},");
         sb.append(" 'habitat': {'terms':{'field':'habitat.keyword'}},");
         sb.append(" 'sex': {'terms':{'field':'sex.keyword'}");
