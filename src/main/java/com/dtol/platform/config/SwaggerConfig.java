@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import springfox.documentation.PathProvider;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -23,6 +24,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 .apis(RequestHandlerSelectors.basePackage("com.dtol.platform.controller"))
                 .paths(PathSelectors.any())
                 .build()
+                .pathMapping("/api")
                 .apiInfo(metaData())
                 .additionalModels(new TypeResolver().resolve(SecondaryOrganism.class),new TypeResolver().resolve(StatusTracking.class));
     }
@@ -47,5 +49,4 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 "https://www.apache.org/licenses/LICENSE-2.0");
         return apiInfo;
     }
-
 }

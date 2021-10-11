@@ -4,6 +4,7 @@ import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.service.RootSampleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +44,7 @@ public class RootOrganismController {
 
     @ApiOperation(value = "Get Root Organism By Name")
     @RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RootOrganism> getRootOrganismByName(@PathVariable("name") String name) {
+    public ResponseEntity<RootOrganism> getRootOrganismByName(@ApiParam(example = "Lutra lutra") @PathVariable("name") String name) {
         RootOrganism rs = rootSampleService.findRootSampleByOrganism(name);
         return new ResponseEntity<RootOrganism>(rs, HttpStatus.OK);
     }
@@ -54,9 +56,10 @@ public class RootOrganismController {
         return new ResponseEntity<Map<String, JSONArray>>(resp, HttpStatus.OK);
     }
 
+    @ApiIgnore
     @ApiOperation(value = "Get Filters for Filtering Secondary Organisms")
     @RequestMapping(value = "/secondary/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, JSONArray>> getSecondaryOrganismFilters(@RequestParam(name = "organism") String organism) throws ParseException {
+    public ResponseEntity<Map<String, JSONArray>> getSecondaryOrganismFilters(@ApiParam(example = "Lutra lutra") @RequestParam(name = "organism") String organism) throws ParseException {
         Map<String, JSONArray> resp = rootSampleService.getSecondaryOrganismFilters(organism);
         return new ResponseEntity<Map<String, JSONArray>>(resp, HttpStatus.OK);
     }
@@ -64,19 +67,19 @@ public class RootOrganismController {
 
     @ApiOperation(value = "Get Filtered Results for Root Organisms")
     @RequestMapping(value = "/root/filter/results", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> getFilteredRootOrganisms(@RequestBody Optional<String> filter,
+    public ResponseEntity<String> getFilteredRootOrganisms(@ApiParam(example = "Submitted to BioSamples") @RequestBody Optional<String> filter,
                                                            @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
                                                            @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                                            @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
                                                            @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder,
-                                                           @RequestParam(value = "taxonomyFilter", required = false) Optional<String> taxonomyFilter) throws ParseException {
+                                                           @ApiParam(example = "[{\"rank\":\"superkingdom\",\"taxonomy\":\"Eukaryota\",\"childRank\":\"kingdom\"}]") @RequestParam(value = "taxonomyFilter", required = false) Optional<String> taxonomyFilter) throws ParseException {
         String resp = rootSampleService.findRootOrganismFilterResults(filter, from, size, sortColumn, sortOrder, taxonomyFilter);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get Root Organism Search Results")
     @RequestMapping(value = "/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> findSearchResults(@RequestParam("filter") String filter,
+    public ResponseEntity<String> findSearchResults(@ApiParam(example = "lutra") @RequestParam("filter") String filter,
                                                     @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
                                                     @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                                     @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,

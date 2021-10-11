@@ -1,6 +1,7 @@
 package com.dtol.platform.es.service.Impl;
 
 import com.dtol.platform.es.service.TaxanomyService;
+import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -279,6 +280,8 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
     @Override
     public String getPhylogeneticTree() {
+        JSONArray resultList = new JSONArray();
+        JSONObject root = new JSONObject();
         try (Session session = driver.session()) {
             String query ="MATCH (parent:Taxonomies {parentId: 0})-[:CHILD]->(child:Taxonomies) "+
             "WITH child "+
@@ -289,27 +292,48 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             "CALL apoc.convert.toTree(paths) yield value "+
             "RETURN value";
             Result result = session.run(query);
-            List<Record> records = result.list();
-            for(Record record: records) {
-                record.keys().forEach(r -> r = "\""+r+"\"");
+//            List<Record> records = result.list();
+//            for(Record record: records) {
+//                record.keys().forEach(r -> r = "\""+r+"\"");
+//            }
+//            String response = records.toString();
+//            response = response.replaceAll("Record<\\{value:","");
+//            response = response.replaceAll(">","");
+//            response = response.replaceAll(", ",", \"");
+//            response = response.replaceAll(":","\":");
+//            response = response.replaceAll("size","\"size");
+//            response = response.replaceAll("'","\"");
+//            response = response.replaceAll("\"\\{","{");
+//            response = response.replaceAll("\" \\{","{");
+//            response = response.replaceAll("]}},","]},");
+//            response = response.replaceAll("child","children");
+//            response = "{'name': 'Eukaryota', 'children':"+response+"}";
+//            response = response.replaceAll("'", "\"");
+//            response = response.substring(0, response.length() -3);
+//            response = response + "]}";
+
+            StringBuilder sb = new StringBuilder();
+            while ( result.hasNext() ) {
+                Record record = result.next();
+                Map<String, Object> map = new HashMap<>();
+                map = record.asMap();
+                String recordString = new Gson().toJson(map.get("value"));
+                JSONParser parser = new JSONParser();
+                JSONObject json = (JSONObject) parser.parse(recordString);
+                resultList.add(json);
             }
-            String response = records.toString();
-            response = response.replaceAll("Record<\\{value:","");
-            response = response.replaceAll(">","");
-            response = response.replaceAll(", ",", \"");
-            response = response.replaceAll(":","\":");
-            response = response.replaceAll("size","\"size");
-            response = response.replaceAll("'","\"");
-            response = response.replaceAll("\"\\{","{");
-            response = response.replaceAll("\" \\{","{");
-            response = response.replaceAll("]}},","]},");
-            response = response.replaceAll("child","children");
-            response = "{'name': 'Eukaryota', 'children':"+response+"}";
-            response = response.replaceAll("'", "\"");
-            response = response.substring(0, response.length() -3);
-            response = response + "]}";
-            return response;
+            root.put("id", 1);
+            root.put("name", "Eukaryota");
+            root.put("parentId", 0);
+            root.put("commonName", "eucaryotes");
+            root.put("child", resultList);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+        String response = root.toJSONString();
+        response = response.replaceAll("child","children");
+        return response;
     }
 
     private void getNestedOntologyAggregations(StringBuilder sb) {
