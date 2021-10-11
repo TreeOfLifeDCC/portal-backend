@@ -1,8 +1,13 @@
 package com.dtol.platform.es.service.Impl;
 
+import com.dtol.platform.es.mapping.DTO.ENAFirstPublicDataResponseDTO;
+import com.dtol.platform.es.mapping.DTO.GeoLocationDTO;
+import com.dtol.platform.es.mapping.DTO.GeoLocationResponseDTO;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.OrganismRepository;
 import com.dtol.platform.es.service.OrganismService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -29,7 +34,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
@@ -132,8 +140,8 @@ public class OrganismServiceImpl implements OrganismService {
         JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
         JSONArray orgPartFilterObj = (JSONArray) ((JSONObject) aggregations.get("organism_part_filter")).get("buckets");
 
-        filterMap.put("sex",sexFilter);
-        filterMap.put("organismPart",orgPartFilterObj);
+        filterMap.put("sex", sexFilter);
+        filterMap.put("organismPart", orgPartFilterObj);
 
         return filterMap;
     }
@@ -143,6 +151,7 @@ public class OrganismServiceImpl implements OrganismService {
         Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
         StringBuilder sb = new StringBuilder();
         sb.append("{");
+        sb.append("'size':0,");
         sb.append("'query' : { 'bool' : { 'must' : [");
         sb.append("{'terms' : {'accession.keyword':['");
         sb.append(accession);
@@ -170,6 +179,115 @@ public class OrganismServiceImpl implements OrganismService {
         return respString;
     }
 
+    @Override
+    public ArrayList<GeoLocationDTO> getOrganismsLocations() {
+        Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{ ");
+        sb.append("'size':10000,");
+        sb.append("'query' : { 'bool' : { 'must' : [");
+        sb.append("]}}}");
+        ArrayList<GeoLocationDTO> geoLocationsList = new ArrayList<>();
+
+        try {
+            String query = sb.toString().replaceAll("'", "\"");
+            String respString = this.postRequest("http://" + esConnectionURL + "/geolocation_organism/_search", query);
+            ObjectMapper mapper = new ObjectMapper();
+            NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
+            JSONObject hits = (JSONObject) (((JSONObject) new JSONParser().parse(respString)).get("hits"));
+            JSONArray data = (JSONArray) (hits.get("hits"));
+            data.forEach(dataObject -> {
+                JSONObject jObject = (JSONObject) dataObject;
+                try {
+                    GeoLocationResponseDTO response = mapper.readValue(jObject.get("_source").toString(), GeoLocationResponseDTO.class);
+                    if (response != null && (response.getGeographicLocationLongitude() != null && response.getGeographicLocationLatitude() != null)
+                            && ((response.getGeographicLocationLongitude().getText() != null && response.getGeographicLocationLatitude().getText() != null))
+                            && !("not provided".equalsIgnoreCase(response.getGeographicLocationLongitude().getText()) || "not provided".equalsIgnoreCase(response.getGeographicLocationLatitude().getText()))
+                            && !("not collected".equalsIgnoreCase(response.getGeographicLocationLongitude().getText()) || "not collected".equalsIgnoreCase(response.getGeographicLocationLatitude().getText()))) {
+                        ArrayList<Double> coordinates = new ArrayList<>();
+                        coordinates.add(format.parse(response.getGeographicLocationLongitude().getText()).doubleValue());
+                        coordinates.add(format.parse(response.getGeographicLocationLatitude().getText()).doubleValue());
+                        geoLocationsList.add(GeoLocationDTO.builder().type("Point").id(response.getId()).coordinates(coordinates).build());
+                    }
+                } catch (JsonProcessingException | java.text.ParseException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return geoLocationsList;
+    }
+
+    @Override
+    public Map<String, List<JSONObject>> getCountOrganismParts() {
+        Map<String, List<JSONObject>> resultMap = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{ 'aggregations':{ 'organismPart': {'terms':{'field':'organismPart.keyword'}},");
+        sb.append(" 'lifestage': {'terms':{'field':'lifestage.keyword'}},");
+        sb.append(" 'habitat': {'terms':{'field':'habitat.keyword'}},");
+        sb.append(" 'sex': {'terms':{'field':'sex.keyword'}");
+        sb.append("}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/organisms_test/_search", query);
+        JSONObject aggregations = null;
+        try {
+            aggregations = (JSONObject) (((JSONObject) new JSONParser().parse(respString)).get("aggregations"));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        resultMap.put("habitat", (JSONArray) ((JSONObject) aggregations.get("habitat")).get("buckets"));
+        resultMap.put("sex", (JSONArray) ((JSONObject) aggregations.get("sex")).get("buckets"));
+
+        resultMap.put("lifestage", (JSONArray) ((JSONObject) aggregations.get("lifestage")).get("buckets"));
+
+        resultMap.put("organismPart", (JSONArray) ((JSONObject) aggregations.get("organismPart")).get("buckets"));
+
+        return resultMap;
+    }
+
+    @Override
+    public List<ENAFirstPublicDataResponseDTO> getFirstPublicCount() {
+        Map<String, List<JSONObject>> resultMap = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{'size':0,");
+        sb.append("'aggregations': {");
+        sb.append("'filters': { 'nested': {'path': 'experiment'}, 'aggs': {");
+        sb.append("'firstPublic': {'terms': {'field': 'experiment.first_public'}}");
+
+        sb.append("}}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal_index/_search", query);
+        JSONObject aggregations = null;
+        try {
+            aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        ArrayList<ENAFirstPublicDataResponseDTO> response = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String strDate = "2000-01-01";
+
+        JSONArray data = (JSONArray) ((JSONObject) aggregations.get("firstPublic")).get("buckets");
+        ObjectMapper mapper = new ObjectMapper();
+        data.forEach(dataObject -> {
+            JSONObject jObject = (JSONObject) dataObject;
+            try {
+                response.add(ENAFirstPublicDataResponseDTO.builder().count((Long) jObject.get("doc_count")).enaFirstPublicInDate(sdf.parse((String) jObject.get("key"))).build());
+
+            } catch (java.text.ParseException e) {
+                e.printStackTrace();
+            }
+        });
+        Collections.sort(response,  (o1, o2) -> o2.getEnaFirstPublicInDate().compareTo(o1.getEnaFirstPublicInDate()));
+        response.forEach(data1->{
+            data1.setEnaFirstPublic(sdf.format(data1.getEnaFirstPublicInDate()));
+        });
+        return response;
+    }
+
     private String postRequest(String baseURL, String body) {
         CloseableHttpClient client = HttpClients.createDefault();
         StringEntity entity = null;
@@ -181,7 +299,8 @@ public class OrganismServiceImpl implements OrganismService {
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
             CloseableHttpResponse rs = client.execute(httpPost);
-            resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
+            InputStream st = rs.getEntity().getContent();
+            resp = IOUtils.toString(st, StandardCharsets.UTF_8.name());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
