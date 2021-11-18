@@ -13,7 +13,7 @@ public interface RootSampleService {
 
     public JSONArray findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException;
 
-    public Map<String, JSONArray> getRootOrganismFilters() throws ParseException;
+    public Map<String, List<JSONObject>> getRootOrganismFilters() throws ParseException;
 
     public Map<String, JSONArray> getSecondaryOrganismFilters(String organism) throws ParseException;
 
@@ -23,9 +23,9 @@ public interface RootSampleService {
 
     public String findRootOrganismFilterResults(Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException;
 
-    public long getRootOrganismCount();
+    public long getRootOrganismCount() throws ParseException;
 
-    public long getRelatedOrganismCount();
+    public long getRelatedOrganismCount() throws ParseException;
 
     public String getDistinctRootSamplesByOrganismQuery(String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> afterKey);
 

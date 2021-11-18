@@ -5,6 +5,7 @@ import com.dtol.platform.es.repository.OrganismStatusTrackingRepository;
 import com.dtol.platform.es.service.OrganismStatusTrackingService;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -41,33 +42,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
 
     @Override
     public JSONArray findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException {
-//        Pageable pageable = null;
-//        String sortColumnName = "";
-//        if (sortColumn.isPresent()) {
-//            sortColumnName = sortColumn.get().toString();
-//            if (sortColumnName.equals("metadata_submitted_to_biosamples")) {
-//                sortColumnName = "biosamples";
-//            } else if (sortColumnName.equals("raw_data_submitted_to_ena")) {
-//                sortColumnName = "raw_data";
-//            } else if (sortColumnName.equals("mapped_reads_submitted_to_ena")) {
-//                sortColumnName = "mapped_reads";
-//            } else if (sortColumnName.equals("assemblies_submitted_to_ena")) {
-//                sortColumnName = "assemblies";
-//            } else if (sortColumnName.equals("annotation_submitted_to_ena")) {
-//                sortColumnName = "annotation";
-//            }
-//
-//            if (sortOrder.get().equals("asc")) {
-//                pageable = PageRequest.of(page, size, Sort.by(sortColumnName).ascending());
-//
-//            } else {
-//                pageable = PageRequest.of(page, size, Sort.by(sortColumnName).descending());
-//            }
-//        } else {
-//            pageable = PageRequest.of(page, size, Sort.by("trackingSystem.rank").descending());
-//        }
-//        Page<StatusTracking> pageObj = organismStatusTrackingRepository.findAll(pageable);
-//        return pageObj.toList();
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
 
@@ -85,95 +59,12 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     }
 
     @Override
-    public long getBiosampleStatusTrackingCount() {
-        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                .withQuery(matchAllQuery())
-                .build();
-        long count = elasticsearchOperations
-                .count(searchQuery, IndexCoordinates.of("tracking_status_index"));
+    public long getBiosampleStatusTrackingCount() throws ParseException {
+        String respString = this.getRequest("http://" + esConnectionURL + "/tracking_status_index/_count");
+        JSONObject resp = (JSONObject) new JSONParser().parse(respString);
+        long count = Long.valueOf(resp.get("count").toString());
         return count;
     }
-
-//    @Override
-//    public Map<String, List<JSONObject>> getFilters() {
-//        Map<String, List<JSONObject>> filterMap = new LinkedHashMap<String, List<JSONObject>>();
-//        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-//                .withQuery(matchAllQuery())
-//                .withSearchType(SearchType.DEFAULT)
-//                .addAggregation(terms("biosamples").field("biosamples.keyword").size(200))
-//                .addAggregation(terms("raw_data").field("raw_data.keyword").size(200))
-//                .addAggregation(terms("mapped_reads").field("mapped_reads.keyword").size(200))
-//                .addAggregation(terms("assemblies").field("assemblies.keyword").size(200))
-//                .addAggregation(terms("annotation_complete").field("annotation_complete.keyword").size(200))
-//                .addAggregation(terms("annotation").field("annotation.keyword").size(200))
-//                .build();
-//        SearchHits<StatusTracking> searchHits = elasticsearchOperations.search(searchQuery, StatusTracking.class,
-//                IndexCoordinates.of("tracking_status_index"));
-//        Map<String, Aggregation> results = searchHits.getAggregations().asMap();
-//        ParsedStringTerms bioFilter = (ParsedStringTerms) results.get("biosamples");
-//        ParsedStringTerms rawFilter = (ParsedStringTerms) results.get("raw_data");
-//        ParsedStringTerms mappedFilter = (ParsedStringTerms) results.get("mapped_reads");
-//        ParsedStringTerms assembFilter = (ParsedStringTerms) results.get("assemblies");
-//        ParsedStringTerms annotCompFilter = (ParsedStringTerms) results.get("annotation_complete");
-//        ParsedStringTerms annotFilter = (ParsedStringTerms) results.get("annotation");
-//
-//        filterMap.put("biosamples", bioFilter.getBuckets()
-//                .stream()
-//                .map(b -> {
-//                    JSONObject filterObj = new JSONObject();
-//                    filterObj.put("key", "Biosamples - " + b.getKeyAsString());
-//                    filterObj.put("doc_count", b.getDocCount());
-//                    return filterObj;
-//                })
-//                .collect(toList()));
-//        filterMap.put("mapped_reads", mappedFilter.getBuckets()
-//                .stream()
-//                .map(b -> {
-//                    JSONObject filterObj = new JSONObject();
-//                    filterObj.put("key", "Mapped reads - " + b.getKeyAsString());
-//                    filterObj.put("doc_count", b.getDocCount());
-//                    return filterObj;
-//                })
-//                .collect(toList()));
-//        filterMap.put("assemblies", assembFilter.getBuckets()
-//                .stream()
-//                .map(b -> {
-//                    JSONObject filterObj = new JSONObject();
-//                    filterObj.put("key", "Assemblies - " + b.getKeyAsString());
-//                    filterObj.put("doc_count", b.getDocCount());
-//                    return filterObj;
-//                })
-//                .collect(toList()));
-//        filterMap.put("raw_data", rawFilter.getBuckets()
-//                .stream()
-//                .map(b -> {
-//                    JSONObject filterObj = new JSONObject();
-//                    filterObj.put("key", "Raw data - " + b.getKeyAsString());
-//                    filterObj.put("doc_count", b.getDocCount());
-//                    return filterObj;
-//                })
-//                .collect(toList()));
-//        filterMap.put("annotation", annotFilter.getBuckets()
-//                .stream()
-//                .map(b -> {
-//                    JSONObject filterObj = new JSONObject();
-//                    filterObj.put("key", "Annotation - " + b.getKeyAsString());
-//                    filterObj.put("doc_count", b.getDocCount());
-//                    return filterObj;
-//                })
-//                .collect(toList()));
-//        filterMap.put("annotation_complete", annotCompFilter.getBuckets()
-//                .stream()
-//                .map(b -> {
-//                    JSONObject filterObj = new JSONObject();
-//                    filterObj.put("key", "Annotation complete - " + b.getKeyAsString());
-//                    filterObj.put("doc_count", b.getDocCount());
-//                    return filterObj;
-//                })
-//                .collect(toList()));
-//
-//        return filterMap;
-//    }
 
     @Override
     public Map<String, List<JSONObject>> getFilters() throws ParseException {
@@ -225,7 +116,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
 
     @Override
     public String findFilterResults(Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
-        List<SecondaryOrganism> results = new ArrayList<SecondaryOrganism>();
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
@@ -280,7 +170,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                     sortColumnName = "annotation_complete.keyword";
                 }
 
-//                sort.append("'sort' : ");
                 if (sortOrder.get().equals("asc")) {
                     sort.append("{'" + sortColumnName + "':'asc'}");
                 } else {
@@ -489,6 +378,28 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("}}}");
         String query = sb.toString().replaceAll("'", "\"");
         return query;
+    }
+
+    private String getRequest(String baseURL) {
+        CloseableHttpClient client = HttpClients.createDefault();
+        StringEntity entity = null;
+        String resp = "";
+        try {
+            HttpGet httpGET = new HttpGet(baseURL);
+            httpGET.setHeader("Accept", "application/json");
+            httpGET.setHeader("Content-type", "application/json");
+            CloseableHttpResponse rs = client.execute(httpGET);
+            resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return resp;
     }
 
 

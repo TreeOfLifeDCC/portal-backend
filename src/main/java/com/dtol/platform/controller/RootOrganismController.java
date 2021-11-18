@@ -51,9 +51,9 @@ public class RootOrganismController {
 
     @ApiOperation(value = "Get Filters for Filtering Root Organisms")
     @RequestMapping(value = "/root/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, JSONArray>> getRootOrganismFilters() throws ParseException {
-        Map<String, JSONArray> resp = rootSampleService.getRootOrganismFilters();
-        return new ResponseEntity<Map<String, JSONArray>>(resp, HttpStatus.OK);
+    public ResponseEntity<Map<String, List<JSONObject>>> getRootOrganismFilters() throws ParseException {
+        Map<String, List<JSONObject>> resp = rootSampleService.getRootOrganismFilters();
+        return new ResponseEntity<Map<String, List<JSONObject>>>(resp, HttpStatus.OK);
     }
 
     @ApiIgnore

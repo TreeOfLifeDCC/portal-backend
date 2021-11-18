@@ -258,7 +258,7 @@ public class OrganismServiceImpl implements OrganismService {
 
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal_index/_search", query);
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = null;
         try {
             aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
