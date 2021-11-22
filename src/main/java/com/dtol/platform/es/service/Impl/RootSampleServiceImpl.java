@@ -187,10 +187,18 @@ public class RootSampleServiceImpl implements RootSampleService {
         sort.append("'sort' : [");
         String sortColumnName = "";
         if (sortColumn.isPresent()) {
+            sortColumnName = sortColumn.get();
+            if(sortColumnName.equals("annotation")) {
+                sortColumnName = "annotation_status";
+            }
+            else if(sortColumnName.equals("assemblies")) {
+                sortColumnName = "assemblies_status";
+            }
+            
             if (sortOrder.get().equals("asc")) {
-                sort.append("{'" + sortColumn.get() + "':'asc'}");
+                sort.append("{'" + sortColumnName + "':'asc'}");
             } else {
-                sort.append("{'" + sortColumn.get() + "':'desc'}");
+                sort.append("{'" + sortColumnName + "':'desc'}");
             }
         }
         else {
