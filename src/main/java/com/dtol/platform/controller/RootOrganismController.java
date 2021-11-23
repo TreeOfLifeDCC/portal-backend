@@ -89,4 +89,11 @@ public class RootOrganismController {
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Get Root Organism By Id")
+    @RequestMapping(value = "/id/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RootOrganism> getRootOrganismById(@ApiParam(example = "Lutra lutra") @PathVariable("id") String id) {
+        RootOrganism rs = rootSampleService.findRootSampleById(id);
+        return new ResponseEntity<RootOrganism>(rs, HttpStatus.OK);
+    }
+
 }

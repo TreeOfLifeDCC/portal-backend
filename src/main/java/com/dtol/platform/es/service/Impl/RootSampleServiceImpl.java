@@ -194,7 +194,7 @@ public class RootSampleServiceImpl implements RootSampleService {
             else if(sortColumnName.equals("assemblies")) {
                 sortColumnName = "assemblies_status";
             }
-            
+
             if (sortOrder.get().equals("asc")) {
                 sort.append("{'" + sortColumnName + "':'asc'}");
             } else {
@@ -531,6 +531,12 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONArray accession = (JSONArray) ((JSONObject) aggregations.get("accession")).get("buckets");
 
         return accession;
+    }
+
+    @Override
+    public RootOrganism findRootSampleById(String id) {
+        RootOrganism rootOrganism = rootOrganismRepository.findRootOrganismById(id);
+        return rootOrganism;
     }
 
     private String getRequest(String baseURL) {
