@@ -10,6 +10,4 @@ public interface RootOrganismRepository extends PagingAndSortingRepository<RootO
     Page<RootOrganism> findAll(Pageable pageable);
 
     RootOrganism findRootOrganismByOrganism(String organism);
-
-    RootOrganism findRootOrganismById(String id);
 }

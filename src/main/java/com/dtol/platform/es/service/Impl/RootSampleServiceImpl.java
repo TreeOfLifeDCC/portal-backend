@@ -534,9 +534,20 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public RootOrganism findRootSampleById(String id) {
-        RootOrganism rootOrganism = rootOrganismRepository.findRootOrganismById(id);
-        return rootOrganism;
+    public JSONObject findRootSampleById(String id) throws ParseException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'query' : { 'bool' : { 'must' : [");
+        sb.append("{'terms' : {'_id':['");
+        sb.append(id);
+        sb.append("']}}]}}}");
+        String query = sb.toString().replaceAll("'", "\"");
+
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
+        JSONObject resp = (JSONObject) ((JSONArray)((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits"))).get("hits")).get(0);
+        JSONObject source = (JSONObject) resp.get("_source");
+
+        return source;
     }
 
     private String getRequest(String baseURL) {

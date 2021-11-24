@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.websocket.server.PathParam;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,10 +91,10 @@ public class RootOrganismController {
     }
 
     @ApiOperation(value = "Get Root Organism By Id")
-    @RequestMapping(value = "/id/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RootOrganism> getRootOrganismById(@ApiParam(example = "Lutra lutra") @PathVariable("id") String id) {
-        RootOrganism rs = rootSampleService.findRootSampleById(id);
-        return new ResponseEntity<RootOrganism>(rs, HttpStatus.OK);
+    @RequestMapping(value = "/root", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<JSONObject> getRootOrganismById(@ApiParam(example = "Lutra lutra") @PathParam("id") String id) throws ParseException {
+        JSONObject rs = rootSampleService.findRootSampleById(id);
+        return new ResponseEntity<JSONObject>(rs, HttpStatus.OK);
     }
 
 }

@@ -39,6 +39,6 @@ public interface RootSampleService {
 
     public JSONArray findSampleAccessionByOrganism(String organism) throws ParseException;
 
-    public RootOrganism findRootSampleById(String id);
+    public JSONObject findRootSampleById(String id) throws ParseException;
 
 }
