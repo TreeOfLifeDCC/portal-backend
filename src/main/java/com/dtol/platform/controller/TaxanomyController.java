@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.websocket.server.PathParam;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +50,14 @@ public class TaxanomyController {
     @RequestMapping(value = "/tree", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getPhylogeneticTree() throws ParseException {
         String resp = taxanomyService.getPhylogeneticTree();
+        return new ResponseEntity<String>(resp, HttpStatus.OK);
+    }
+
+    @CrossOrigin()
+    @ApiOperation(value = "Get Taxonomy hierarchical search data")
+    @RequestMapping(value = "/tree/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> phylogeneticTreeSearch(@PathParam("param") String param) throws ParseException {
+        String resp = taxanomyService.phylogeneticTreeSearch(param);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 }

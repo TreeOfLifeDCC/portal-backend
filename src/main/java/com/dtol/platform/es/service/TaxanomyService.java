@@ -22,4 +22,6 @@ public interface TaxanomyService {
 
     public String getPhylogeneticTree();
 
+    public String phylogeneticTreeSearch(String param);
+
 }
