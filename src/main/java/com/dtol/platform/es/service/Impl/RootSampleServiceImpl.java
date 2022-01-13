@@ -391,7 +391,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'assemblies': {'terms': {'field': 'assemblies'}},");
         sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
         sb.append("'annotation': {'terms': {'field': 'annotation'}},");
-        sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies'},");
+        sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
         sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}}");
         sb.append("}");
@@ -548,23 +548,21 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject source = (JSONObject) resp.get("_source");
         JSONArray experiment = (JSONArray) source.get("experiment");
         JSONArray expArray = new JSONArray();
-        if (experiment != null) {
-            for (int i = 0; i < experiment.size(); i++) {
-                JSONObject obj = (JSONObject) experiment.get(i);
-                String fast_q = (String) obj.get("fastq_ftp");
-                String[] fast_q_array = fast_q.split(";");
+        for(int i=0;i<experiment.size(); i++) {
+            JSONObject obj = (JSONObject) experiment.get(i);
+            String fast_q = (String) obj.get("fastq_ftp");
+            String [] fast_q_array = fast_q.split(";");
 
-                String submitted_ftp = (String) obj.get("submitted_ftp");
-                String[] submitted_ftp_array = submitted_ftp.split(";");
+            String submitted_ftp = (String) obj.get("submitted_ftp");
+            String [] submitted_ftp_array = submitted_ftp.split(";");
 
-                String sra_ftp = (String) obj.get("sra_ftp");
-                String[] sra_ftp_array = sra_ftp.split(";");
+            String sra_ftp = (String) obj.get("sra_ftp");
+            String [] sra_ftp_array = sra_ftp.split(";");
 
-                obj.put("fastq_ftp", fast_q_array);
-                obj.put("submitted_ftp", submitted_ftp_array);
-                obj.put("sra_ftp", sra_ftp_array);
-                expArray.add(obj);
-            }
+            obj.put("fastq_ftp",fast_q_array);
+            obj.put("submitted_ftp",submitted_ftp_array);
+            obj.put("sra_ftp",sra_ftp_array);
+            expArray.add(obj);
         }
         source.put("experiment", expArray);
 

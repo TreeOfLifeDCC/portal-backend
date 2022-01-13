@@ -42,6 +42,17 @@ public class RootOrganism {
     @Field(name = "tolid", type = FieldType.Keyword)
     private String tolid;
 
+    @Field(name = "related_annotation", type = FieldType.Nested)
+    private List<RelatedAnnotationDTO> relatedAnnotation;
+
+    public List<RelatedAnnotationDTO> getRelatedAnnotation() {
+        return relatedAnnotation;
+    }
+
+    public void setRelatedAnnotation(List<RelatedAnnotationDTO> relatedAnnotation) {
+        this.relatedAnnotation = relatedAnnotation;
+    }
+
     public String getId() {
         return id;
     }
