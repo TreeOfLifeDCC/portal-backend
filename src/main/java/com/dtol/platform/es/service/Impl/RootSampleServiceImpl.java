@@ -4,6 +4,7 @@ import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.RootOrganismRepository;
 import com.dtol.platform.es.service.RootSampleService;
+import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -11,34 +12,19 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import static java.util.stream.Collectors.toList;
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 
 @Service
 @Transactional
@@ -79,8 +65,17 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'rank':{'terms':{'field':'trackingSystem.rank', 'order': { '_key' : 'desc' }},");
         sb.append("'aggregations':{ 'name': {'terms':{'field':'trackingSystem.name'},");
         sb.append("'aggregations':{ 'status': {'terms':{'field':'trackingSystem.status'}");
-        sb.append("}}}}}}}}}");
+        sb.append("}}}}}}},");
+
+        sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
+        sb.append("'aggs':{");
+        sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
+        sb.append("}}}}");
+
+        sb.append("}");
+
         String query = sb.toString().replaceAll("'", "\"");
+        System.out.println(query);
         String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("trackingSystem")).get("rank");
         JSONArray trackFilterArray = (JSONArray) (aggregations.get("buckets"));
@@ -113,6 +108,15 @@ public class RootSampleServiceImpl implements RootSampleService {
             }
             filterMap.put(trackObj.get("key").toString(), statusArray);
         }
+
+        String genomeCount = (String) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("genome")).get("doc_count").toString();
+        JSONObject obj = new JSONObject();
+        List<JSONObject> arr = new ArrayList<JSONObject>();
+
+        obj.put("key", "Genome Notes - Submitted");
+        obj.put("doc_count", Integer.valueOf(genomeCount));
+        arr.add(obj);
+        filterMap.put("genome", arr);
 
         return filterMap;
     }
@@ -326,6 +330,8 @@ public class RootSampleServiceImpl implements RootSampleService {
                     sb.append("{'terms' : {'annotation_status':[");
                     sb.append("'" + splitArray[1].trim() + "'");
                     sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Genome Notes")) {
+                    sb.append("{ 'nested': {'path': 'genome_notes','query': {'bool': {'must': [{'exists': {'field': 'genome_notes.url'}}]}}}},");
                 }
             }
             sb.append("]}},");
@@ -353,7 +359,13 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
         sb.append("'assemblies': {'terms': {'field': 'assemblies_status'}},");
         sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
-        sb.append("'annotation': {'terms': {'field': 'annotation_status'}}");
+        sb.append("'annotation': {'terms': {'field': 'annotation_status'}},");
+
+        sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
+        sb.append("'aggs':{");
+        sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
+        sb.append("}}}");
+
         sb.append("}");
 
         sb.append("}");
@@ -393,7 +405,13 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'annotation': {'terms': {'field': 'annotation'}},");
         sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
-        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}}");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}},");
+
+        sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
+        sb.append("'aggs':{");
+        sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
+        sb.append("}}}");
+
         sb.append("}");
 
         sb.append("}");
