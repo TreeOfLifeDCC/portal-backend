@@ -32,8 +32,9 @@ public class TaxanomyController {
                                                        @ApiParam(example = "Eukaryota") @RequestParam("taxonomy") String taxonomy,
                                                        @ApiParam(example = "subkingdom") @RequestParam("childRank") String childRank,
                                                        @ApiParam(example = "data") @RequestParam("type") String type,
+                                                       @ApiParam(example = "Salmo") @RequestParam(value = "searchText", required = false) Optional<String> search,
                                                        @ApiParam(example = "[{\"rank\":\"superkingdom\",\"taxonomy\":\"Eukaryota\",\"childRank\":\"kingdom\"}]") @RequestBody String taxaTree) throws ParseException {
-        String resp = taxanomyService.getChildTaxonomyRank(filter, rank, taxonomy, childRank, taxaTree, type);
+        String resp = taxanomyService.getChildTaxonomyRank(search, filter, rank, taxonomy, childRank, taxaTree, type);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 

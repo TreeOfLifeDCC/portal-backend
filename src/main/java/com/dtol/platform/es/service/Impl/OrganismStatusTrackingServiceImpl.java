@@ -115,11 +115,11 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     }
 
     @Override
-    public String findFilterResults(Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
+    public String findFilterResults(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.filterQueryGenerator(filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
+        String query = this.filterQueryGenerator(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
         respString = this.postRequest("http://" + esConnectionURL + "/tracking_status_index/_search", query);
 
         return respString;
@@ -185,10 +185,18 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         return sort;
     }
 
-    private String filterQueryGenerator(Optional<String> filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
+    private String filterQueryGenerator(Optional<String> search, Optional<String> filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
         StringBuilder sb = new StringBuilder();
         StringBuilder sbt = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
+        StringBuilder searchQuery = new StringBuilder();
+
+        if(search.isPresent()) {
+            String[] searchArray = search.get().split(" ");
+            for (String temp : searchArray) {
+                searchQuery.append("*" + temp + "*");
+            }
+        }
 
         sb.append("{");
         if (!from.equals("undefined") && !size.equals("undefined"))
@@ -196,6 +204,13 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         if (sort.length() != 0)
             sb.append(sort);
         sb.append("'query' : { 'bool' : { 'must' : [");
+
+        if(searchQuery.length() != 0) {
+            sb.append("{'query_string': {");
+            sb.append("'query' : '" + searchQuery.toString() + "',");
+            sb.append("'fields' : ['organism','commonName','biosamples.keyword','raw_data.keyword','mapped_reads.keyword','assemblies.keyword','annotation_complete.keyword','annotation.keyword']");
+            sb.append("}},");
+        }
 
         if (taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
             String taxArray = taxonomyFilter.get().toString();
