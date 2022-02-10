@@ -415,9 +415,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
         sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
-        sb.append("'assemblies': {'terms': {'field': 'assemblies'}},");
+        sb.append("'assemblies': {'terms': {'field': 'assemblies_status'}},");
         sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
-        sb.append("'annotation': {'terms': {'field': 'annotation'}},");
+        sb.append("'annotation': {'terms': {'field': 'annotation_status'}},");
         sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
         sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}},");
