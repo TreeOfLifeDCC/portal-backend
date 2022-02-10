@@ -40,6 +40,8 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
+    static final String [] taxaRankArray = {"superkingdom", "kingdom","subkingdom","superphylum","phylum","subphylum","superclass","class","subclass","infraclass","cohort","subcohort","superorder","order","suborder","infraorder","parvorder","section","subsection","superfamily","family","subfamily","tribe","subtribe","genus","series","subgenus","species_group","species_subgroup","species","subspecies","varietas","forma"};
+
     @Override
     public JSONArray findAll(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException {
         StringBuilder sb = new StringBuilder();
@@ -189,6 +191,9 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         StringBuilder sb = new StringBuilder();
         StringBuilder sbt = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
+        Boolean isPhylogenyFilter = false;
+        String phylogenyRank = "";
+        String phylogenyTaxId = "";
 
         sb.append("{");
         if (!from.equals("undefined") && !size.equals("undefined"))
@@ -261,6 +266,16 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                     sb.append("{'terms' : {'annotation.keyword':[");
                     sb.append("'" + splitArray[1].trim() + "'");
                     sb.append("]}},");
+                } else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
+                    isPhylogenyFilter = true;
+                    phylogenyRank = splitArray[0].trim();
+                    phylogenyTaxId = splitArray[1].trim();
+                    sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                    sb.append("{ 'nested' : { 'path': 'taxonomies."+splitArray[0].trim()+"', 'query' : ");
+                    sb.append("{ 'bool' : { 'must' : [");
+                    sb.append("{ 'term' : { 'taxonomies.");
+                    sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
+                    sb.append("]}}}}}},");
                 }
             }
             sb.append("]}},");
@@ -273,14 +288,21 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
         sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}},");
-        if (taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
+        if (taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined") && !isPhylogenyFilter) {
             JSONArray taxaTree = (JSONArray) new JSONParser().parse(taxonomyFilter.get().toString());
             if (taxaTree.size() > 0) {
                 JSONObject taxa = (JSONObject) taxaTree.get(taxaTree.size() - 1);
                 sb.append("'childRank': { 'nested': { 'path':'taxonomies."+ taxa.get("childRank")+"'},");
                 sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies."+taxa.get("childRank")+".scientificName', 'size': 20000},");
-                sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies."+taxa.get("childRank")+".commonName', 'size': 20000}}}}}},");
+                sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies."+taxa.get("childRank")+".commonName', 'size': 20000}},");
+                sb.append("'taxId':{'terms':{'field':'taxonomies." + taxa.get("childRank") + ".tax_id.keyword', 'size': 20000}}}}}},");
             }
+        }
+        else if(isPhylogenyFilter) {
+            sb.append("'childRank': { 'nested': { 'path':'taxonomies."+ phylogenyRank+"'},");
+            sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies."+phylogenyRank+".scientificName', 'size': 20000},");
+            sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies."+phylogenyRank+".commonName', 'size': 20000}},");
+            sb.append("'taxId':{'terms':{'field':'taxonomies." + phylogenyRank + ".tax_id.keyword', 'size': 20000}}}}}},");
         }
 
         sb.append("'biosamples': {'terms': {'field': 'biosamples.keyword'}},");
@@ -328,7 +350,8 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("'annotation': {'terms': {'field': 'annotation.keyword'}},");
         sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
-        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}}");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}},");
+        sb.append("'taxId':{'terms':{'field':'taxonomies.kingdom.tax_id.keyword', 'size': 20000}}}}}}");
         sb.append("}");
 
         sb.append("}");

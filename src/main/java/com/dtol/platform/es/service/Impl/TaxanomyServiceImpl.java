@@ -35,6 +35,8 @@ public class TaxanomyServiceImpl implements TaxanomyService {
     @Autowired
     Driver driver;
 
+    static final String [] taxaRankArray = {"superkingdom", "kingdom","subkingdom","superphylum","phylum","subphylum","superclass","class","subclass","infraclass","cohort","subcohort","superorder","order","suborder","infraorder","parvorder","section","subsection","superfamily","family","subfamily","tribe","subtribe","genus","series","subgenus","species_group","species_subgroup","species","subspecies","varietas","forma"};
+
     @Override
     public String findTaxanomiesByParent(String parent) {
         Map<String, JSONArray> filterMap = new HashMap<String, JSONArray>();
@@ -85,8 +87,6 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         JSONArray taxaTree = (JSONArray) new JSONParser().parse(tree);
 
         JSONArray childDataArray = new JSONArray();
-        StringBuilder hasChildQuery = new StringBuilder();
-        StringBuilder hasChildFilterQuery = new StringBuilder();
         String esURL = "http://" + esConnectionURL;
 
         sb.append("{");
@@ -127,8 +127,6 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                 }
             }
         }
-
-        hasChildQuery.append(sb.toString());
 
         if (filter.isPresent()) {
             if (type.equals("data")) {
@@ -191,6 +189,16 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}}}");
                             else
                                 filtersb.append("]}}}},");
+                        } else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
+                            filtersb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                            filtersb.append("{ 'nested' : { 'path': 'taxonomies."+splitArray[0].trim()+"', 'query' : ");
+                            filtersb.append("{ 'bool' : { 'must' : [");
+                            filtersb.append("{ 'term' : { 'taxonomies.");
+                            filtersb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}}}}}");
+                            else
+                                filtersb.append("]}}}}}},");
                         }
                     }
                 }
@@ -247,6 +255,16 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}");
                             else
                                 filtersb.append("]}},");
+                        } else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
+                            filtersb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                            filtersb.append("{ 'nested' : { 'path': 'taxonomies."+splitArray[0].trim()+"', 'query' : ");
+                            filtersb.append("{ 'bool' : { 'must' : [");
+                            filtersb.append("{ 'term' : { 'taxonomies.");
+                            filtersb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}}}}}");
+                            else
+                                filtersb.append("]}}}}}},");
                         }
                     }
                 }
@@ -254,20 +272,20 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         }
         sb.append(filtersb.toString());
 
-        hasChildFilterQuery.append(filtersb.toString());
-
         sb.append("]}},");
 
         sb.append("'aggregations': {");
         sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
-        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}}}}}},");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}},");
+        sb.append("'taxId':{'terms':{'field':'taxonomies.kingdom.tax_id.keyword', 'size': 20000}}}}}},");
         sb.append("'childRank': { 'nested': { 'path':'taxonomies." + childRank + "'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies." + childRank + ".scientificName', 'size': 20000},");
-        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + childRank + ".commonName', 'size': 20000}}}}}}");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + childRank + ".commonName', 'size': 20000}},");
+        sb.append("'taxId':{'terms':{'field':'taxonomies." + childRank + ".tax_id.keyword', 'size': 20000}}}}}}");
         sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
-
+        System.out.println(query);
         String respString = this.postRequest(esURL, query);
         JSONArray aggregations = null;
         JSONArray rootAggregations = null;
@@ -283,6 +301,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         childTaxa.put("parent", taxonomy);
         childTaxa.put("rank", childRank);
+        childTaxa.put("taxId", 2759);
         childTaxa.put("childData", aggregations);
         childTaxa.put("expanded", false);
 
@@ -296,13 +315,13 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         JSONObject root = new JSONObject();
         try (Session session = driver.session()) {
             String query ="MATCH (parent:Taxonomies {parentId: 0})-[:CHILD]->(child:Taxonomies) "+
-            "WITH child "+
-            "MATCH childPath=(child)-[:CHILD*0..]->(subChild) "+
-            "with childPath  "+
-            ",CASE WHEN subChild:Taxonomies THEN subChild.id END as orderField order by orderField "+
-            "with collect(childPath) as paths "+
-            "CALL apoc.convert.toTree(paths) yield value "+
-            "RETURN value";
+                    "WITH child "+
+                    "MATCH childPath=(child)-[:CHILD*0..]->(subChild) "+
+                    "with childPath  "+
+                    ",CASE WHEN subChild:Taxonomies THEN subChild.id END as orderField order by orderField "+
+                    "with collect(childPath) as paths "+
+                    "CALL apoc.convert.toTree(paths) yield value "+
+                    "RETURN value";
             Result result = session.run(query);
             StringBuilder sb = new StringBuilder();
             while ( result.hasNext() ) {
