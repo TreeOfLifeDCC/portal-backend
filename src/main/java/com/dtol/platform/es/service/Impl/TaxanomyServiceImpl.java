@@ -80,7 +80,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
     }
 
     @Override
-    public String getChildTaxonomyRank(Optional<String> filter, String rank, String taxonomy, String childRank, String tree, String type) throws ParseException {
+    public String getChildTaxonomyRank(Optional<String> search, Optional<String> filter, String rank, String taxonomy, String childRank, String tree, String type) throws ParseException {
         StringBuilder sb = new StringBuilder();
         StringBuilder filtersb = new StringBuilder();
         JSONObject resp = new JSONObject();
@@ -88,6 +88,14 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         JSONArray childDataArray = new JSONArray();
         String esURL = "http://" + esConnectionURL;
+        StringBuilder searchQuery = new StringBuilder();
+
+        if(search.isPresent()) {
+            String[] searchArray = search.get().split(" ");
+            for (String temp : searchArray) {
+                searchQuery.append("*" + temp + "*");
+            }
+        }
 
         sb.append("{");
         sb.append("'size':0,");
@@ -95,9 +103,21 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         if(type.equals("status")) {
             esURL = esURL + "/tracking_status_index/_search";
+            if(searchQuery.length() != 0) {
+                sb.append("{'query_string': {");
+                sb.append("'query' : '" + searchQuery.toString() + "',");
+                sb.append("'fields' : ['organism','commonName','biosamples.keyword','raw_data.keyword','mapped_reads.keyword','assemblies.keyword','annotation_complete.keyword','annotation.keyword']");
+                sb.append("}},");
+            }
         }
         else if (type.equals("data")) {
             esURL = esURL + "/data_portal/_search";
+            if(searchQuery.length() != 0) {
+                sb.append("{'query_string': {");
+                sb.append("'query' : '" + searchQuery.toString() + "',");
+                sb.append("'fields' : ['organism.normalize','commonName.normalize', 'biosamples','raw_data','mapped_reads','assemblies_status','annotation_complete','annotation_status']");
+                sb.append("}},");
+            }
         }
 
         for (int i = 0; i < taxaTree.size(); i++) {

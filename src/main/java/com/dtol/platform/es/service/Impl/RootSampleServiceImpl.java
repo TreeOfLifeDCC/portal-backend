@@ -166,11 +166,11 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public String findRootOrganismFilterResults(Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
+    public String findRootOrganismFilterResults(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
-        String query = this.getOrganismFilterQuery(filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
+        String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
         respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         return respString;
     }
@@ -255,13 +255,21 @@ public class RootSampleServiceImpl implements RootSampleService {
         return query;
     }
 
-    private String getOrganismFilterQuery(Optional<String> filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
+    private String getOrganismFilterQuery(Optional<String> search, Optional<String> filter, String from, String size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException {
         StringBuilder sb = new StringBuilder();
         StringBuilder sbt = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
         Boolean isPhylogenyFilter = false;
         String phylogenyRank = "";
         String phylogenyTaxId = "";
+        StringBuilder searchQuery = new StringBuilder();
+
+        if(search.isPresent()) {
+            String[] searchArray = search.get().split(" ");
+            for (String temp : searchArray) {
+                searchQuery.append("*" + temp + "*");
+            }
+        }
 
         sb.append("{");
         if (!from.equals("undefined") && !size.equals("undefined"))
@@ -269,6 +277,13 @@ public class RootSampleServiceImpl implements RootSampleService {
         if (sort.length() != 0)
             sb.append(sort);
         sb.append("'query' : { 'bool' : { 'must' : [");
+
+        if(searchQuery.length() != 0) {
+            sb.append("{'query_string': {");
+            sb.append("'query' : '" + searchQuery.toString() + "',");
+            sb.append("'fields' : ['organism.normalize','commonName.normalize', 'biosamples','raw_data','mapped_reads','assemblies_status','annotation_complete','annotation_status']");
+            sb.append("}},");
+        }
 
         if (taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
             String taxArray = taxonomyFilter.get().toString();

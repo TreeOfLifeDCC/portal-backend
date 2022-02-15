@@ -68,8 +68,9 @@ public class StatusTrackingController {
                                                           @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                                           @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
                                                           @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder,
+                                                          @ApiParam(example = "Salmo") @RequestParam(value = "searchText", required = false) Optional<String> search,
                                                           @ApiParam(example = "[{\"rank\":\"superkingdom\",\"taxonomy\":\"Eukaryota\",\"childRank\":\"kingdom\"}]") @RequestParam(value = "taxonomyFilter", required = false) Optional<String> taxonomyFilter) throws ParseException {
-        String resp = organismStatusTrackingService.findFilterResults(filter, from, size, sortColumn, sortOrder, taxonomyFilter);
+        String resp = organismStatusTrackingService.findFilterResults(search, filter, from, size, sortColumn, sortOrder, taxonomyFilter);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
 

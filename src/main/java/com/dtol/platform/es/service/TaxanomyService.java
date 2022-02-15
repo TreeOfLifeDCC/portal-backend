@@ -18,7 +18,7 @@ public interface TaxanomyService {
 
     public String getTaxonomicRanksAndCounts(Optional<String> taxonomy) throws ParseException;
 
-    public String getChildTaxonomyRank(Optional<String> filter, String taxonomy, String value, String childRank, String taxaTree, String type) throws ParseException;
+    public String getChildTaxonomyRank(Optional<String> search, Optional<String> filter, String taxonomy, String value, String childRank, String taxaTree, String type) throws ParseException;
 
     public String getPhylogeneticTree();
 
