@@ -102,7 +102,7 @@ public class RootOrganismController {
         return new ResponseEntity<JSONObject>(rs, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/data/csv", method = RequestMethod.GET)
+    @RequestMapping(value = "/data/csv", method = RequestMethod.POST)
     public ResponseEntity<Resource> getFile(@ApiParam(example = "Submitted to BioSamples") @RequestBody Optional<String> filter,
                                             @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
                                             @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,

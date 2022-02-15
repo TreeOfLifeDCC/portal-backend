@@ -613,7 +613,7 @@ public class RootSampleServiceImpl implements RootSampleService {
     public ByteArrayInputStream csvDownload(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
-        String query = this.getOrganismFilterQuery(search, filter, "0", "5000", sortColumn, sortOrder, taxonomyFilter);
+        String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
         respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         JSONParser parser = new JSONParser();
         jsonResponse = (JSONObject) parser.parse(respString);
@@ -637,6 +637,8 @@ public class RootSampleServiceImpl implements RootSampleService {
                 String tolqc = "";
                 String tolid = "-";
 
+                organism = obj.get("organism").toString();
+
                 if(obj.get("experiment") != null && (((JSONArray) obj.get("experiment")).size() >0)) {
                     insdc = ((JSONObject) (((JSONArray) obj.get("experiment")).get(0))).get("study_accession").toString();
                 }
@@ -658,7 +660,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 String externalRef = (!goatInfo.isEmpty() ? goatInfo+";" : "")+ (!tolqc.isEmpty() ? tolqc+";" : "")+(!genome.isEmpty() ? genome : "");
 
                 List<String> record = Arrays.asList(
-                obj.get("organism").toString(), tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
+                organism, tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
                 csvPrinter.printRecord(record);
             }
             csvPrinter.flush();

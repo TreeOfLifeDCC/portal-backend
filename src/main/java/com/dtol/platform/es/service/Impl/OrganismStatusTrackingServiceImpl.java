@@ -3,6 +3,8 @@ package com.dtol.platform.es.service.Impl;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.OrganismStatusTrackingRepository;
 import com.dtol.platform.es.service.OrganismStatusTrackingService;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -23,7 +25,10 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -417,5 +422,54 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         return resp;
     }
 
+    @Override
+    public ByteArrayInputStream csvDownload(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException {
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        String query = this.filterQueryGenerator(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
+        respString = this.postRequest("http://" + esConnectionURL + "/tracking_status_index/_search", query);
+        JSONParser parser = new JSONParser();
+        jsonResponse = (JSONObject) parser.parse(respString);
+        JSONArray jsonList =  (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
+        ByteArrayInputStream csv = createCsv(jsonList);
+        return csv;
+    }
 
+    private ByteArrayInputStream createCsv(JSONArray jsonList) throws IOException {
+        String[] header = {"Organism", "Common Name", "Metadata submitted to BioSamples", "Raw data submitted to ENA", "Mapped reads submitted to ENA", "Assemblies submitted to ENA", "Annotation complete", "Annotation submitted to ENA"};
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), CSVFormat.DEFAULT.withHeader(header));) {
+            for (int i = 0; i < jsonList.size(); i++) {
+                JSONObject obj = (JSONObject) ((JSONObject) jsonList.get(i)).get("_source");
+                String organism = "";
+                String commonName = "-";
+                String biosamples = "";
+                String rawData = "";
+                String mappedReads = "";
+                String assemblies = "";
+                String annotationComplete = "";
+                String annotation = "";
+
+                organism = obj.get("organism").toString();
+
+                if(obj.get("commonName") != null) {
+                    commonName = obj.get("commonName").toString();
+                }
+                biosamples = obj.get("biosamples").toString();
+                rawData = obj.get("raw_data").toString();
+                mappedReads = obj.get("mapped_reads").toString();
+                assemblies = obj.get("assemblies").toString();
+                annotationComplete = obj.get("annotation_complete").toString();
+                annotation = obj.get("annotation").toString();
+
+                List<String> record = Arrays.asList(
+                        organism, commonName, biosamples, rawData, mappedReads, assemblies, annotationComplete, annotation);
+                csvPrinter.printRecord(record);
+            }
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("fail to import data to CSV file: " + e.getMessage());
+        }
+    }
 }

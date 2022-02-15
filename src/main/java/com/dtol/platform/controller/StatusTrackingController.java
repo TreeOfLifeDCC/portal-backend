@@ -9,12 +9,16 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,5 +88,21 @@ public class StatusTrackingController {
                                                        @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder) {
         String resp = organismStatusTrackingService.findBioSampleByOrganismByText(name, from, size, sortColumn, sortOrder);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/data/csv", method = RequestMethod.POST)
+    public ResponseEntity<Resource> getFile(@ApiParam(example = "Submitted to BioSamples") @RequestBody Optional<String> filter,
+                                            @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
+                                            @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
+                                            @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
+                                            @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder,
+                                            @ApiParam(example = "Salmo") @RequestParam(value = "searchText", required = false) Optional<String> search,
+                                            @ApiParam(example = "[{\"rank\":\"superkingdom\",\"taxonomy\":\"Eukaryota\",\"childRank\":\"kingdom\"}]") @RequestParam(value = "taxonomyFilter", required = false) Optional<String> taxonomyFilter) throws IOException, ParseException {
+        String filename = "organism-statuses-metadata.csv";
+        InputStreamResource file = new InputStreamResource(organismStatusTrackingService.csvDownload(search, filter, from, size, sortColumn, sortOrder, taxonomyFilter));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(file);
     }
 }
