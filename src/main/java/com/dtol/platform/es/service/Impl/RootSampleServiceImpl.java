@@ -4,7 +4,6 @@ import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.RootOrganismRepository;
 import com.dtol.platform.es.service.RootSampleService;
-import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -22,9 +21,15 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 @Service
 @Transactional
@@ -625,6 +630,76 @@ public class RootSampleServiceImpl implements RootSampleService {
         }
 
         return source;
+    }
+
+    @Override
+    public ByteArrayInputStream csvDownload(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException {
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
+        respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
+        JSONParser parser = new JSONParser();
+        jsonResponse = (JSONObject) parser.parse(respString);
+        JSONArray jsonList =  (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
+        ByteArrayInputStream csv = createCsv(jsonList);
+        return csv;
+    }
+
+    private ByteArrayInputStream createCsv(JSONArray jsonList) throws IOException {
+        String[] header = {"Organism", "ToL ID", "INSDC ID", "Common Name", "Current status", "External references"};
+        JSONObject tolCodes = getTolCodes();
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), CSVFormat.DEFAULT.withHeader(header));) {
+            for (int i = 0; i < jsonList.size(); i++) {
+                JSONObject obj = (JSONObject) ((JSONObject) jsonList.get(i)).get("_source");
+                String organism = "";
+                String insdc = "-";
+                String commonName = "-";
+                String goatInfo = "";
+                String genome = "";
+                String tolqc = "";
+                String tolid = "-";
+
+                organism = obj.get("organism").toString();
+
+                if(obj.get("experiment") != null && (((JSONArray) obj.get("experiment")).size() >0)) {
+                    insdc = ((JSONObject) (((JSONArray) obj.get("experiment")).get(0))).get("study_accession").toString();
+                }
+                if(obj.get("commonName") != null) {
+                    commonName = obj.get("commonName").toString();
+                }
+                if(obj.get("genome_notes") != null && (((JSONArray) obj.get("genome_notes")).size() >0)) {
+                    genome = ((JSONObject) (((JSONArray) obj.get("genome_notes")).get(0))).get("url").toString();
+                }
+                if(obj.get("goat_info") != null && ((JSONObject) obj.get("goat_info")).size() >0) {
+                    goatInfo = ((JSONObject) obj.get("goat_info")).get("url").toString();
+                }
+                if(obj.get("tolid") != null) {
+                    tolid = obj.get("tolid").toString();
+                    String organismName = organism.replaceAll(" ", "-");
+                    String clade = tolCodes.get(Character.toString(tolid.charAt(0))).toString();
+                    tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/"+clade+"/"+organismName;
+                }
+                String externalRef = (!goatInfo.isEmpty() ? goatInfo+";" : "")+ (!tolqc.isEmpty() ? tolqc+";" : "")+(!genome.isEmpty() ? genome : "");
+
+                List<String> record = Arrays.asList(
+                organism, tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
+                csvPrinter.printRecord(record);
+            }
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("fail to import data to CSV file: " + e.getMessage());
+        }
+    }
+
+    JSONObject getTolCodes() {
+        JSONObject obj = new JSONObject();
+        obj.put("m","mammals");obj.put("d","dicots");obj.put("i","insects");obj.put("u","algae");obj.put("p","protists");obj.put("x","molluscs");obj.put("t","other-animal-phyla");obj.put("q","arthropods");
+        obj.put("k","chordates");obj.put("f","fish");obj.put("a","amphibians");obj.put("b","birds");obj.put("e","echinoderms");obj.put("w","annelids");obj.put("j","jellyfish");obj.put("h","platyhelminths");
+        obj.put("n","nematodes");obj.put("v","vascular-plants");obj.put("l","monocots");obj.put("c","non-vascular-plants");obj.put("g","fungi");obj.put("o","sponges");obj.put("r","reptiles");obj.put("s","sharks");obj.put("y","bacteria");
+        obj.put("z","archea");
+        return obj;
     }
 
     private String getRequest(String baseURL) {
