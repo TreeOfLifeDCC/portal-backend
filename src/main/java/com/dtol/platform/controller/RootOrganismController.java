@@ -118,4 +118,21 @@ public class RootOrganismController {
                 .body(file);
     }
 
+
+    @ApiOperation(value = "Download assemblies csv Format")
+    @RequestMapping(value = "/assemblies/csv", method = RequestMethod.POST)
+    public ResponseEntity<Resource> getAssembliesCSVFils(@ApiParam(example = "Submitted to BioSamples") @RequestBody Optional<String> filter,
+                                                         @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
+                                                         @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
+                                                         @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
+                                                         @RequestParam(value = "sortOrder", required = false) Optional<String> sortOrder,
+                                                         @ApiParam(example = "Salmo") @RequestParam(value = "searchText", required = false) Optional<String> search,
+                                                         @ApiParam(example = "[{\"rank\":\"superkingdom\",\"taxonomy\":\"Eukaryota\",\"childRank\":\"kingdom\"}]") @RequestParam(value = "taxonomyFilter", required = false) Optional<String> taxonomyFilter) throws IOException, ParseException {
+        String filename = "assemblies.csv";
+        InputStreamResource file = new InputStreamResource(rootSampleService.getAssembliesCSVFils(search, filter, from, size, sortColumn, sortOrder, taxonomyFilter));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(file);
+    }
 }
