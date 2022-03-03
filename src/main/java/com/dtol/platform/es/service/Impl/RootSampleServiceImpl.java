@@ -4,6 +4,9 @@ import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.RootOrganismRepository;
 import com.dtol.platform.es.service.RootSampleService;
+import io.netty.util.internal.StringUtil;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -27,9 +30,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 
 @Service
 @Transactional
@@ -722,6 +722,68 @@ public class RootSampleServiceImpl implements RootSampleService {
             }
         }
         return resp;
+    }
+
+    @Override
+    public ByteArrayInputStream getAssembliesCSVFils(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException {
+        JSONObject jsonResponse = new JSONObject();
+        StringBuilder sb = new StringBuilder();
+        String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
+        ByteArrayInputStream csv = null;
+        JSONParser parser = new JSONParser();
+        jsonResponse = (JSONObject) parser.parse(respString);
+        JSONArray jsonList = (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
+        //JSONArray list = (JSONArray) ((JSONObject) ((JSONObject) jsonList.get(0)).get("_source")).get("assemblies");
+        csv = createAssembliesCSV(jsonList);
+        return csv;
+    }
+
+    private ByteArrayInputStream createAssembliesCSV(JSONArray jsonList) throws IOException {
+        String[] header = {"Scientific Name", "Accession", "Version", "Assembly Name", "Assembly Description", "Link to chromosomes, contigs and scaffolds all in one"};
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), CSVFormat.DEFAULT.withHeader(header));) {
+            for (int i = 0; i < jsonList.size(); i++) {
+                JSONObject obj = ((JSONObject) ((JSONObject) jsonList.get(i)).get("_source"));
+                JSONArray list = ((JSONArray) obj.get("assemblies"));
+                String scientificName = (String) obj.get("organism");
+
+                for (int j = 0; j < list.size(); j++) {
+                    JSONObject objass = (JSONObject) list.get(j);
+                    String accession = "-";
+                    String version = "-";
+                    String assemblyName = "";
+                    String assemblyDescription = "";
+                    String link = "";
+                    if (objass.get("assembly_name") != null) {
+                        assemblyName = objass.get("assembly_name").toString();
+                    }
+
+                    if (objass.get("version") != null) {
+                        version = objass.get("version").toString();
+                    }
+
+                    if (objass.get("accession") != null) {
+                        accession = objass.get("accession").toString();
+                    }
+                    if (objass.get("description") != null) {
+                        assemblyDescription = objass.get("description").toString();
+                    }
+                    if (!StringUtil.isNullOrEmpty(accession)) {
+                        link = "https://www.ebi.ac.uk/ena/browser/api/fasta/" + accession + "?download=true&gzip=true";
+                    }
+//
+                    List<String> record = Arrays.asList(
+                            scientificName, accession, version, assemblyName, assemblyDescription, link);
+                    csvPrinter.printRecord(record);
+                }
+                csvPrinter.flush();
+            }
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("fail to import data to CSV file: " + e.getMessage());
+        }
     }
 
 }
