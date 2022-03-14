@@ -759,7 +759,7 @@ public class RootSampleServiceImpl implements RootSampleService {
 
     private ByteArrayInputStream createAssembliesCSV(JSONArray jsonList, String downloadOption) throws IOException {
         String[] header = {};
-        if (downloadOption.equalsIgnoreCase("assemblis")) {
+        if (downloadOption.equalsIgnoreCase("assemblies")) {
             header = new String[]{"Scientific Name", "Accession", "Version", "Assembly Name", "Assembly Description", "Link to chromosomes, contigs and scaffolds all in one"};
         } else if (downloadOption.equalsIgnoreCase("annotation")) {
             header = new String[]{"Annotation GTF", "Annotation GFF3", "Proteins Fasta", "Transcripts Fasta", "Softmasked genomes Fasta"};

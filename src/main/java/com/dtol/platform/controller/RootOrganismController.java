@@ -129,7 +129,7 @@ public class RootOrganismController {
                                                          @ApiParam(example = "Salmo") @RequestParam(value = "searchText", required = false) Optional<String> search,
                                                          @ApiParam(example = "[{\"rank\":\"superkingdom\",\"taxonomy\":\"Eukaryota\",\"childRank\":\"kingdom\"}]") @RequestParam(value = "taxonomyFilter", required = false) Optional<String> taxonomyFilter
                                                         ,@ApiParam(example = "downloadOption") @RequestParam("downloadOption") String downloadOption) throws IOException, ParseException {
-        String filename = "assemblies.csv";
+        String filename = downloadOption+".csv";
         InputStreamResource file = new InputStreamResource(rootSampleService.getAssembliesCSVFils(search, filter, from, size, sortColumn, sortOrder, taxonomyFilter,downloadOption));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
