@@ -45,5 +45,5 @@ public interface RootSampleService {
 
     public ByteArrayInputStream csvDownload(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException;
 
-     ByteArrayInputStream getAssembliesCSVFils(Optional<String> search, Optional<String> filter,Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException;
+     ByteArrayInputStream getAssembliesCSVFils(Optional<String> search, Optional<String> filter,Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter,String downloadOption) throws ParseException, IOException;
 }

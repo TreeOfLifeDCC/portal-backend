@@ -41,7 +41,7 @@ public class RootSampleServiceImpl implements RootSampleService {
     RootOrganismRepository rootOrganismRepository;
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
-    static final String [] taxaRankArray = {"superkingdom", "kingdom","subkingdom","superphylum","phylum","subphylum","superclass","class","subclass","infraclass","cohort","subcohort","superorder","order","suborder","infraorder","parvorder","section","subsection","superfamily","family","subfamily","tribe","subtribe","genus","series","subgenus","species_group","species_subgroup","species","subspecies","varietas","forma"};
+    static final String[] taxaRankArray = {"superkingdom", "kingdom", "subkingdom", "superphylum", "phylum", "subphylum", "superclass", "class", "subclass", "infraclass", "cohort", "subcohort", "superorder", "order", "suborder", "infraorder", "parvorder", "section", "subsection", "superfamily", "family", "subfamily", "tribe", "subtribe", "genus", "series", "subgenus", "species_group", "species_subgroup", "species", "subspecies", "varietas", "forma"};
 
     @Override
     public JSONArray findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException {
@@ -85,7 +85,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("trackingSystem")).get("rank");
         JSONArray trackFilterArray = (JSONArray) (aggregations.get("buckets"));
-        for(int i=0; i<trackFilterArray.size();i++) {
+        for (int i = 0; i < trackFilterArray.size(); i++) {
             JSONObject obj = (JSONObject) trackFilterArray.get(i);
             JSONObject trackObj = (JSONObject) ((JSONArray) ((JSONObject) (obj).get("name")).get("buckets")).get(0);
             String name = "";
@@ -198,10 +198,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         String sortColumnName = "";
         if (sortColumn.isPresent()) {
             sortColumnName = sortColumn.get();
-            if(sortColumnName.equals("annotation")) {
+            if (sortColumnName.equals("annotation")) {
                 sortColumnName = "annotation_status";
-            }
-            else if(sortColumnName.equals("assemblies")) {
+            } else if (sortColumnName.equals("assemblies")) {
                 sortColumnName = "assemblies_status";
             }
 
@@ -210,8 +209,7 @@ public class RootSampleServiceImpl implements RootSampleService {
             } else {
                 sort.append("{'" + sortColumnName + "':'desc'}");
             }
-        }
-        else {
+        } else {
             sort.append("{'trackingSystem.rank':{'order':'desc','nested_path':'trackingSystem', 'nested_filter':{'term':{'trackingSystem.status':'Done'}}}}");
         }
         sort.append("],");
@@ -269,7 +267,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         String phylogenyTaxId = "";
         StringBuilder searchQuery = new StringBuilder();
 
-        if(search.isPresent()) {
+        if (search.isPresent()) {
             String[] searchArray = search.get().split(" ");
             for (String temp : searchArray) {
                 searchQuery.append("*" + temp + "*");
@@ -283,7 +281,7 @@ public class RootSampleServiceImpl implements RootSampleService {
             sb.append(sort);
         sb.append("'query' : { 'bool' : { 'must' : [");
 
-        if(searchQuery.length() != 0) {
+        if (searchQuery.length() != 0) {
             sb.append("{'query_string': {");
             sb.append("'query' : '" + searchQuery.toString() + "',");
             sb.append("'fields' : ['organism.normalize','commonName.normalize', 'biosamples','raw_data','mapped_reads','assemblies_status','annotation_complete','annotation_status']");
@@ -298,7 +296,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                     JSONObject taxa = (JSONObject) taxaTree.get(i);
                     if (taxaTree.size() == 1) {
                         sbt.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                        sbt.append("{ 'nested' : { 'path': 'taxonomies."+taxa.get("rank")+"', 'query' : ");
+                        sbt.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
                         sbt.append("{ 'bool' : { 'must' : [");
                         sbt.append("{ 'term' : { 'taxonomies.");
                         sbt.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
@@ -306,14 +304,14 @@ public class RootSampleServiceImpl implements RootSampleService {
                     } else {
                         if (i == taxaTree.size() - 1) {
                             sbt.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                            sbt.append("{ 'nested' : { 'path': 'taxonomies."+taxa.get("rank")+"', 'query' : ");
+                            sbt.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
                             sbt.append("{ 'bool' : { 'must' : [");
                             sbt.append("{ 'term' : { 'taxonomies.");
                             sbt.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
                             sbt.append("]}}}}}}");
                         } else {
                             sbt.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                            sbt.append("{ 'nested' : { 'path': 'taxonomies."+taxa.get("rank")+"', 'query' : ");
+                            sbt.append("{ 'nested' : { 'path': 'taxonomies." + taxa.get("rank") + "', 'query' : ");
                             sbt.append("{ 'bool' : { 'must' : [");
                             sbt.append("{ 'term' : { 'taxonomies.");
                             sbt.append(taxa.get("rank") + ".scientificName': '" + taxa.get("taxonomy") + "'}}");
@@ -361,7 +359,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                     phylogenyRank = splitArray[0].trim();
                     phylogenyTaxId = splitArray[1].trim();
                     sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                    sb.append("{ 'nested' : { 'path': 'taxonomies."+splitArray[0].trim()+"', 'query' : ");
+                    sb.append("{ 'nested' : { 'path': 'taxonomies." + splitArray[0].trim() + "', 'query' : ");
                     sb.append("{ 'bool' : { 'must' : [");
                     sb.append("{ 'term' : { 'taxonomies.");
                     sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
@@ -383,16 +381,15 @@ public class RootSampleServiceImpl implements RootSampleService {
             JSONArray taxaTree = (JSONArray) new JSONParser().parse(taxonomyFilter.get().toString());
             if (taxaTree.size() > 0) {
                 JSONObject taxa = (JSONObject) taxaTree.get(taxaTree.size() - 1);
-                sb.append("'childRank': { 'nested': { 'path':'taxonomies."+ taxa.get("childRank")+"'},");
-                sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies."+taxa.get("childRank")+".scientificName', 'size': 20000},");
-                sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies."+taxa.get("childRank")+".commonName', 'size': 20000}},");
+                sb.append("'childRank': { 'nested': { 'path':'taxonomies." + taxa.get("childRank") + "'},");
+                sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies." + taxa.get("childRank") + ".scientificName', 'size': 20000},");
+                sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + taxa.get("childRank") + ".commonName', 'size': 20000}},");
                 sb.append("'taxId':{'terms':{'field':'taxonomies." + taxa.get("childRank") + ".tax_id.keyword', 'size': 20000}}}}}},");
             }
-        }
-        else if(isPhylogenyFilter) {
-            sb.append("'childRank': { 'nested': { 'path':'taxonomies."+ phylogenyRank+"'},");
-            sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies."+phylogenyRank+".scientificName', 'size': 20000},");
-            sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies."+phylogenyRank+".commonName', 'size': 20000}},");
+        } else if (isPhylogenyFilter) {
+            sb.append("'childRank': { 'nested': { 'path':'taxonomies." + phylogenyRank + "'},");
+            sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies." + phylogenyRank + ".scientificName', 'size': 20000},");
+            sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + phylogenyRank + ".commonName', 'size': 20000}},");
             sb.append("'taxId':{'terms':{'field':'taxonomies." + phylogenyRank + ".tax_id.keyword', 'size': 20000}}}}}},");
         }
 
@@ -605,7 +602,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         String query = sb.toString().replaceAll("'", "\"");
 
         String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
-        JSONObject resp = (JSONObject) ((JSONArray)((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits"))).get("hits")).get(0);
+        JSONObject resp = (JSONObject) ((JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits"))).get("hits")).get(0);
         JSONObject source = (JSONObject) resp.get("_source");
         JSONArray experiment = (JSONArray) source.get("experiment");
         JSONArray expArray = new JSONArray();
@@ -640,7 +637,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         JSONParser parser = new JSONParser();
         jsonResponse = (JSONObject) parser.parse(respString);
-        JSONArray jsonList =  (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
+        JSONArray jsonList = (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
         ByteArrayInputStream csv = createCsv(jsonList);
         return csv;
     }
@@ -662,28 +659,28 @@ public class RootSampleServiceImpl implements RootSampleService {
 
                 organism = obj.get("organism").toString();
 
-                if(obj.get("experiment") != null && (((JSONArray) obj.get("experiment")).size() >0)) {
+                if (obj.get("experiment") != null && (((JSONArray) obj.get("experiment")).size() > 0)) {
                     insdc = ((JSONObject) (((JSONArray) obj.get("experiment")).get(0))).get("study_accession").toString();
                 }
-                if(obj.get("commonName") != null) {
+                if (obj.get("commonName") != null) {
                     commonName = obj.get("commonName").toString();
                 }
-                if(obj.get("genome_notes") != null && (((JSONArray) obj.get("genome_notes")).size() >0)) {
+                if (obj.get("genome_notes") != null && (((JSONArray) obj.get("genome_notes")).size() > 0)) {
                     genome = ((JSONObject) (((JSONArray) obj.get("genome_notes")).get(0))).get("url").toString();
                 }
-                if(obj.get("goat_info") != null && ((JSONObject) obj.get("goat_info")).size() >0) {
+                if (obj.get("goat_info") != null && ((JSONObject) obj.get("goat_info")).size() > 0) {
                     goatInfo = ((JSONObject) obj.get("goat_info")).get("url").toString();
                 }
-                if(obj.get("tolid") != null) {
+                if (obj.get("tolid") != null) {
                     tolid = obj.get("tolid").toString();
                     String organismName = organism.replaceAll(" ", "-");
                     String clade = tolCodes.get(Character.toString(tolid.charAt(0))).toString();
-                    tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/"+clade+"/"+organismName;
+                    tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
                 }
-                String externalRef = (!goatInfo.isEmpty() ? goatInfo+";" : "")+ (!tolqc.isEmpty() ? tolqc+";" : "")+(!genome.isEmpty() ? genome : "");
+                String externalRef = (!goatInfo.isEmpty() ? goatInfo + ";" : "") + (!tolqc.isEmpty() ? tolqc + ";" : "") + (!genome.isEmpty() ? genome : "");
 
                 List<String> record = Arrays.asList(
-                organism, tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
+                        organism, tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
                 csvPrinter.printRecord(record);
             }
             csvPrinter.flush();
@@ -695,10 +692,32 @@ public class RootSampleServiceImpl implements RootSampleService {
 
     JSONObject getTolCodes() {
         JSONObject obj = new JSONObject();
-        obj.put("m","mammals");obj.put("d","dicots");obj.put("i","insects");obj.put("u","algae");obj.put("p","protists");obj.put("x","molluscs");obj.put("t","other-animal-phyla");obj.put("q","arthropods");
-        obj.put("k","chordates");obj.put("f","fish");obj.put("a","amphibians");obj.put("b","birds");obj.put("e","echinoderms");obj.put("w","annelids");obj.put("j","jellyfish");obj.put("h","platyhelminths");
-        obj.put("n","nematodes");obj.put("v","vascular-plants");obj.put("l","monocots");obj.put("c","non-vascular-plants");obj.put("g","fungi");obj.put("o","sponges");obj.put("r","reptiles");obj.put("s","sharks");obj.put("y","bacteria");
-        obj.put("z","archea");
+        obj.put("m", "mammals");
+        obj.put("d", "dicots");
+        obj.put("i", "insects");
+        obj.put("u", "algae");
+        obj.put("p", "protists");
+        obj.put("x", "molluscs");
+        obj.put("t", "other-animal-phyla");
+        obj.put("q", "arthropods");
+        obj.put("k", "chordates");
+        obj.put("f", "fish");
+        obj.put("a", "amphibians");
+        obj.put("b", "birds");
+        obj.put("e", "echinoderms");
+        obj.put("w", "annelids");
+        obj.put("j", "jellyfish");
+        obj.put("h", "platyhelminths");
+        obj.put("n", "nematodes");
+        obj.put("v", "vascular-plants");
+        obj.put("l", "monocots");
+        obj.put("c", "non-vascular-plants");
+        obj.put("g", "fungi");
+        obj.put("o", "sponges");
+        obj.put("r", "reptiles");
+        obj.put("s", "sharks");
+        obj.put("y", "bacteria");
+        obj.put("z", "archea");
         return obj;
     }
 
@@ -725,7 +744,7 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public ByteArrayInputStream getAssembliesCSVFils(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException {
+    public ByteArrayInputStream getAssembliesCSVFils(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter, String downloadOption) throws ParseException, IOException {
         JSONObject jsonResponse = new JSONObject();
         StringBuilder sb = new StringBuilder();
         String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
@@ -734,48 +753,108 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONParser parser = new JSONParser();
         jsonResponse = (JSONObject) parser.parse(respString);
         JSONArray jsonList = (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
-        //JSONArray list = (JSONArray) ((JSONObject) ((JSONObject) jsonList.get(0)).get("_source")).get("assemblies");
-        csv = createAssembliesCSV(jsonList);
+        csv = createAssembliesCSV(jsonList, downloadOption);
         return csv;
     }
 
-    private ByteArrayInputStream createAssembliesCSV(JSONArray jsonList) throws IOException {
-        String[] header = {"Scientific Name", "Accession", "Version", "Assembly Name", "Assembly Description", "Link to chromosomes, contigs and scaffolds all in one"};
+    private ByteArrayInputStream createAssembliesCSV(JSONArray jsonList, String downloadOption) throws IOException {
+        String[] header = {};
+        if (downloadOption.equalsIgnoreCase("assemblis")) {
+            header = new String[]{"Scientific Name", "Accession", "Version", "Assembly Name", "Assembly Description", "Link to chromosomes, contigs and scaffolds all in one"};
+        } else if (downloadOption.equalsIgnoreCase("annotation")) {
+            header = new String[]{"Annotation GTF", "Annotation GFF3", "Proteins Fasta", "Transcripts Fasta", "Softmasked genomes Fasta"};
+        } else if (downloadOption.equalsIgnoreCase("rawFiles")) {
+            header = new String[]{"FASTQ-FTP"};
+        }
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), CSVFormat.DEFAULT.withHeader(header));) {
-            for (int i = 0; i < jsonList.size(); i++) {
-                JSONObject obj = ((JSONObject) ((JSONObject) jsonList.get(i)).get("_source"));
-                JSONArray list = ((JSONArray) obj.get("assemblies"));
-                String scientificName = (String) obj.get("organism");
+            for (Object item : jsonList) {
+                JSONObject obj = ((JSONObject) ((JSONObject) item).get("_source"));
+                if (downloadOption.equalsIgnoreCase("assemblies")) {
+                    JSONArray list = ((JSONArray) obj.get("assemblies"));
+                    String scientificName = (String) obj.get("organism");
+                    if (list != null) {
+                        for (Object o : list) {
+                            JSONObject objass = (JSONObject) o;
+                            String accession = "-";
+                            String version = "-";
+                            String assemblyName = "";
+                            String assemblyDescription = "";
+                            String link = "";
+                            if (objass.get("assembly_name") != null) {
+                                assemblyName = objass.get("assembly_name").toString();
+                            }
 
-                for (int j = 0; j < list.size(); j++) {
-                    JSONObject objass = (JSONObject) list.get(j);
-                    String accession = "-";
-                    String version = "-";
-                    String assemblyName = "";
-                    String assemblyDescription = "";
-                    String link = "";
-                    if (objass.get("assembly_name") != null) {
-                        assemblyName = objass.get("assembly_name").toString();
-                    }
+                            if (objass.get("version") != null) {
+                                version = objass.get("version").toString();
+                            }
 
-                    if (objass.get("version") != null) {
-                        version = objass.get("version").toString();
-                    }
-
-                    if (objass.get("accession") != null) {
-                        accession = objass.get("accession").toString();
-                    }
-                    if (objass.get("description") != null) {
-                        assemblyDescription = objass.get("description").toString();
-                    }
-                    if (!StringUtil.isNullOrEmpty(accession)) {
-                        link = "https://www.ebi.ac.uk/ena/browser/api/fasta/" + accession + "?download=true&gzip=true";
-                    }
+                            if (objass.get("accession") != null) {
+                                accession = objass.get("accession").toString();
+                            }
+                            if (objass.get("description") != null) {
+                                assemblyDescription = objass.get("description").toString();
+                            }
+                            if (!StringUtil.isNullOrEmpty(accession)) {
+                                link = "https://www.ebi.ac.uk/ena/browser/api/fasta/" + accession + "?download=true&gzip=true";
+                            }
 //
-                    List<String> record = Arrays.asList(
-                            scientificName, accession, version, assemblyName, assemblyDescription, link);
-                    csvPrinter.printRecord(record);
+                            List<String> record = Arrays.asList(
+                                    scientificName, accession, version, assemblyName, assemblyDescription, link);
+                            csvPrinter.printRecord(record);
+                        }
+                    }
+                } else if (downloadOption.equalsIgnoreCase("annotation")) {
+                    JSONArray annotationList = ((JSONArray) obj.get("annotation"));
+                    if (annotationList != null) {
+                        for (int i = 0; i < annotationList.size(); i++) {
+                            JSONObject annotationoObj = (JSONObject) annotationList.get(i);
+                            String gtf = "-";
+                            String gff3 = "-";
+                            String proteinsFasta = "";
+                            String transcriptsFasta = "";
+                            String softmaskedGenomesFasta = "";
+                            if (annotationoObj.get("annotation") != null) {
+                                JSONObject obj2 = ((JSONObject) annotationoObj.get("annotation"));
+                                gtf = obj2.get("GTF").toString();
+                                gff3 = obj2.get("GFF3").toString();
+                                if (annotationoObj.get("proteins") != null) {
+                                    proteinsFasta = ((JSONObject) annotationoObj.get("proteins")).get("FASTA").toString();
+
+                                }
+                                if (annotationoObj.get("transcripts") != null) {
+                                    transcriptsFasta = ((JSONObject) annotationoObj.get("transcripts")).get("FASTA").toString();
+
+                                }
+
+                                if (annotationoObj.get("softmasked_genome") != null) {
+                                    softmaskedGenomesFasta = ((JSONObject) annotationoObj.get("softmasked_genome")).get("FASTA").toString();
+
+                                }
+                            }
+                            List<String> record = Arrays.asList(gtf,
+                                    gff3, proteinsFasta, transcriptsFasta, softmaskedGenomesFasta);
+                            csvPrinter.printRecord(record);
+                            System.out.println(record);
+                        }
+
+                    }
+                } else if (downloadOption.equalsIgnoreCase("rawFiles")) {
+                    JSONArray list = ((JSONArray) obj.get("experiment"));
+                    if (list != null) {
+                        for (Object value : list) {
+                            JSONObject experimentObj = (JSONObject) value;
+                            String fASTQ_FTP = "";
+                            if (experimentObj.get("fastq_ftp") != null) {
+                                fASTQ_FTP = experimentObj.get("fastq_ftp").toString();
+
+                                List<String> record = Arrays.asList(fASTQ_FTP);
+                                csvPrinter.printRecord(record);
+                                System.out.println(record);
+                            }
+                        }
+                    }
+
                 }
                 csvPrinter.flush();
             }
