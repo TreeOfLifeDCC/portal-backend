@@ -121,7 +121,7 @@ public class RootOrganismController {
 
     @ApiOperation(value = "Download assemblies csv Format")
     @RequestMapping(value = "/data-files/csv", method = RequestMethod.POST)
-    public ResponseEntity<Resource> getAssembliesCSVFils(@ApiParam(example = "Submitted to BioSamples") @RequestBody Optional<String> filter,
+    public ResponseEntity<Resource> getDataFiles(@ApiParam(example = "Submitted to BioSamples") @RequestBody Optional<String> filter,
                                                          @RequestParam(name = "from", required = false, defaultValue = "0") Optional<String> from,
                                                          @RequestParam(value = "size", required = false, defaultValue = "20") Optional<String> size,
                                                          @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
@@ -130,7 +130,7 @@ public class RootOrganismController {
                                                          @ApiParam(example = "[{\"rank\":\"superkingdom\",\"taxonomy\":\"Eukaryota\",\"childRank\":\"kingdom\"}]") @RequestParam(value = "taxonomyFilter", required = false) Optional<String> taxonomyFilter
                                                         ,@ApiParam(example = "downloadOption") @RequestParam("downloadOption") String downloadOption) throws IOException, ParseException {
         String filename = downloadOption+".csv";
-        InputStreamResource file = new InputStreamResource(rootSampleService.getAssembliesCSVFils(search, filter, from, size, sortColumn, sortOrder, taxonomyFilter,downloadOption));
+        InputStreamResource file = new InputStreamResource(rootSampleService.getDataFiles(search, filter, from, size, sortColumn, sortOrder, taxonomyFilter,downloadOption));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.parseMediaType("application/csv"))

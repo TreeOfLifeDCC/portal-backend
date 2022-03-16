@@ -744,7 +744,7 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public ByteArrayInputStream getAssembliesCSVFils(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter, String downloadOption) throws ParseException, IOException {
+    public ByteArrayInputStream getDataFiles(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter, String downloadOption) throws ParseException, IOException {
         JSONObject jsonResponse = new JSONObject();
         StringBuilder sb = new StringBuilder();
         String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
@@ -753,18 +753,18 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONParser parser = new JSONParser();
         jsonResponse = (JSONObject) parser.parse(respString);
         JSONArray jsonList = (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
-        csv = createAssembliesCSV(jsonList, downloadOption);
+        csv = createDataFilesCSV(jsonList, downloadOption);
         return csv;
     }
 
-    private ByteArrayInputStream createAssembliesCSV(JSONArray jsonList, String downloadOption) throws IOException {
+    private ByteArrayInputStream createDataFilesCSV(JSONArray jsonList, String downloadOption) throws IOException {
         String[] header = {};
         if (downloadOption.equalsIgnoreCase("assemblies")) {
             header = new String[]{"Scientific Name", "Accession", "Version", "Assembly Name", "Assembly Description", "Link to chromosomes, contigs and scaffolds all in one"};
         } else if (downloadOption.equalsIgnoreCase("annotation")) {
             header = new String[]{"Annotation GTF", "Annotation GFF3", "Proteins Fasta", "Transcripts Fasta", "Softmasked genomes Fasta"};
-        } else if (downloadOption.equalsIgnoreCase("rawFiles")) {
-            header = new String[]{"FASTQ-FTP"};
+        } else if (downloadOption.equalsIgnoreCase("raw_files")) {
+            header = new String[]{"Study Accession","Sample Accession","Experiment Accession","Run Accession","Tax Id","Scientific Name","FASTQ FTP","Submitted FTP","SRA FTP","Library Construction Protocol"};
         }
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), CSVFormat.DEFAULT.withHeader(header));) {
@@ -839,19 +839,80 @@ public class RootSampleServiceImpl implements RootSampleService {
                         }
 
                     }
-                } else if (downloadOption.equalsIgnoreCase("rawFiles")) {
+                } else if (downloadOption.equalsIgnoreCase("raw_files")) {
                     JSONArray list = ((JSONArray) obj.get("experiment"));
                     if (list != null) {
                         for (Object value : list) {
                             JSONObject experimentObj = (JSONObject) value;
                             String fASTQ_FTP = "";
+                            String studyAccession="";
+                            String sampleAccession="";
+                            String experimentAccession="";
+                            String runAccession="";
+                            String taxId="";
+                            String scientificName="";
+                            String submittedFTP="";
+                            String sRAFTP="";
+                            String libraryConstructionProtocol="";
+                            if (experimentObj.get("study_accession") != null) {
+                                studyAccession = experimentObj.get("study_accession").toString();
+                            }
+                            if (experimentObj.get("sample_accession") != null) {
+                                sampleAccession = experimentObj.get("sample_accession").toString();
+                            }
+                            if (experimentObj.get("experiment_accession") != null) {
+                                experimentAccession = experimentObj.get("experiment_accession").toString();
+                            }
+                            if (experimentObj.get("run_accession") != null) {
+                                runAccession = experimentObj.get("run_accession").toString();
+                            }
+                            if (experimentObj.get("tax_id") != null) {
+                                taxId = experimentObj.get("tax_id").toString();
+                            }
+                            if (experimentObj.get("scientific_name") != null) {
+                                scientificName = experimentObj.get("scientific_name").toString();
+                            }
+                            if (experimentObj.get("submitted_ftp") != null) {
+                                submittedFTP = experimentObj.get("submitted_ftp").toString();
+                            }
+                            if (experimentObj.get("sra-ftp") != null) {
+                                sRAFTP = experimentObj.get("sra-ftp").toString();
+                            }
+                            if (experimentObj.get("library_construction_protocol") != null) {
+                                libraryConstructionProtocol = experimentObj.get("library_construction_protocol").toString();
+                            }
                             if (experimentObj.get("fastq_ftp") != null) {
                                 fASTQ_FTP = experimentObj.get("fastq_ftp").toString();
-
-                                List<String> record = Arrays.asList(fASTQ_FTP);
-                                csvPrinter.printRecord(record);
-                                System.out.println(record);
+                                String[] fASTQ_FTPList = fASTQ_FTP.split(";");
+                                if(fASTQ_FTPList.length> 1){
+                                    for (String s : fASTQ_FTPList) {
+                                        List<String> record = Arrays.asList(studyAccession,
+                                                sampleAccession,
+                                                experimentAccession,
+                                                runAccession,
+                                                taxId,
+                                                scientificName,
+                                                s,
+                                                submittedFTP,
+                                                sRAFTP,
+                                                libraryConstructionProtocol);
+                                        csvPrinter.printRecord(record);
+                                    }
+                                }else{
+                                    List<String> record = Arrays.asList(studyAccession,
+                                            sampleAccession,
+                                            experimentAccession,
+                                            runAccession,
+                                            taxId,
+                                            scientificName,
+                                            fASTQ_FTP,
+                                            submittedFTP,
+                                            sRAFTP,
+                                            libraryConstructionProtocol);
+                                    csvPrinter.printRecord(record);
+                                }
                             }
+
                         }
                     }
 
