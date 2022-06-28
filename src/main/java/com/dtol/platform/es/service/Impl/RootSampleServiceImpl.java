@@ -219,7 +219,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 sort.append("{'" + sortColumnName + "':'desc'}");
             }
         } else {
-            sort.append("{'trackingSystem.rank':{'order':'desc','nested_path':'trackingSystem', 'nested_filter':{'term':{'trackingSystem.status':'Done'}}}}");
+            sort.append("{'trackingSystem.rank':{'order':'desc','nested':{'path': 'trackingSystem', 'filter': {'term': {'trackingSystem.status': 'Done'}}}}}");
         }
         sort.append("],");
 
