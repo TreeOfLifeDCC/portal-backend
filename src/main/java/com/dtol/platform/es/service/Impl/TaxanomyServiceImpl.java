@@ -47,7 +47,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/ontology/_search", query);
+        String respString = this.postRequest("https://" + esConnectionURL + "/ontology/_search", query);
 
         return respString;
     }
@@ -73,7 +73,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
+        String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
 
         return aggregations.toJSONString();
@@ -87,7 +87,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         JSONArray taxaTree = (JSONArray) new JSONParser().parse(tree);
 
         JSONArray childDataArray = new JSONArray();
-        String esURL = "http://" + esConnectionURL;
+        String esURL = "https://" + esConnectionURL;
         StringBuilder searchQuery = new StringBuilder();
 
         if(search.isPresent()) {
