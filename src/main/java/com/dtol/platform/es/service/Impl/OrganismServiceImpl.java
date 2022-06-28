@@ -157,7 +157,6 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("']}}]}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        System.out.println(esConnectionURL);
         String respString = this.postRequest("https://" + esConnectionURL + "/organisms_test/_search", query);
 
         return respString;
@@ -293,7 +292,6 @@ public class OrganismServiceImpl implements OrganismService {
         StringEntity entity = null;
         String resp = "";
         try {
-            System.out.println(baseURL);
             HttpPost httpPost = new HttpPost(baseURL);
             entity = new StringEntity(body);
             httpPost.setEntity(entity);
@@ -303,7 +301,6 @@ public class OrganismServiceImpl implements OrganismService {
             InputStream st = rs.getEntity().getContent();
             resp = IOUtils.toString(st, StandardCharsets.UTF_8.name());
         } catch (IOException e) {
-            System.out.println(baseURL);
             e.printStackTrace();
         } finally {
             try {
