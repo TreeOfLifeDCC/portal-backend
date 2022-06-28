@@ -4,6 +4,7 @@ import com.dtol.platform.es.mapping.RootOrganism;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.repository.RootOrganismRepository;
 import com.dtol.platform.es.service.RootSampleService;
+import io.netty.util.internal.SocketUtils;
 import io.netty.util.internal.StringUtil;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -57,6 +58,7 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         String query = sb.toString().replaceAll("'", "\"");
         String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+        System.out.println(respString);
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
         return respArray;
     }
