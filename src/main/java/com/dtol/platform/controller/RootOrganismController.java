@@ -135,4 +135,12 @@ public class RootOrganismController {
                 .contentType(MediaType.parseMediaType("application/csv"))
                 .body(file);
     }
+
+    @ApiOperation(value = "Get GIS Data for Organisms & Specimens")
+    @RequestMapping(value = "/gis", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<JSONArray> getGisData() throws ParseException {
+        HashMap<String, Object> response = new HashMap<>();
+        JSONArray resp = rootSampleService.getGisData();
+        return new ResponseEntity<JSONArray>(resp, HttpStatus.OK);
+    }
 }

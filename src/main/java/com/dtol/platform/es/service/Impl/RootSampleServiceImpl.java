@@ -786,4 +786,18 @@ public class RootSampleServiceImpl implements RootSampleService {
         }
     }
 
+    @Override
+    public JSONArray getGisData() throws ParseException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'from' :0 ,'size':1000000,");
+        sb.append("'query' : { 'match_all' : {}}");
+        sb.append("}");
+
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/gis/_search", query);
+        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
+        return respArray;
+    }
+
 }
