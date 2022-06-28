@@ -57,8 +57,12 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"");
+        System.out.println("=====================================================");
+        System.out.println("https://" + esConnectionURL + "/data_portal/_search");
+        System.out.println(query);
         String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
         System.out.println(respString);
+        System.out.println("=====================================================");
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
         return respArray;
     }
