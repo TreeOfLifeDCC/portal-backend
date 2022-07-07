@@ -16,6 +16,7 @@ public interface RootSampleService {
     public JSONArray findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException;
 
     public Map<String, List<JSONObject>> getRootOrganismFilters() throws ParseException;
+    Map<String, List<JSONObject>> getExperimentTypeFilters() throws ParseException;
 
     public Map<String, JSONArray> getSecondaryOrganismFilters(String organism) throws ParseException;
 

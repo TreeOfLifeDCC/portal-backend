@@ -61,6 +61,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         return respArray;
     }
 
+
     @Override
     public Map<String, List<JSONObject>> getRootOrganismFilters() throws ParseException {
         Map<String, List<JSONObject>> filterMap = new HashMap<>();
@@ -124,6 +125,37 @@ public class RootSampleServiceImpl implements RootSampleService {
         arr.add(obj);
         filterMap.put("genome", arr);
 
+        return filterMap;
+    }
+
+
+    public Map<String, List<JSONObject>> getExperimentTypeFilters() throws ParseException {
+        Map<String, List<JSONObject>> filterMap = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{'size':0, 'aggregations':{");
+        sb.append("'experiment': { 'nested': { 'path':'experiment'},");
+        sb.append("'aggs':{");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'}");
+        sb.append("}}}}}");
+
+
+        System.out.println(sb);
+        String query = sb.toString().replaceAll("'", "\"");
+
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
+        JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("experiment")).get("library_construction_protocol");
+        JSONArray libraryConstructionProtocol = (JSONArray) (aggregations.get("buckets"));
+
+        List<JSONObject> libraryConstructionArray = new ArrayList<JSONObject>();
+        for (int j = 0; j < libraryConstructionProtocol.size(); j++) {
+            JSONObject temp = (JSONObject) libraryConstructionProtocol.get(j);
+            JSONObject filterObj = new JSONObject();
+            filterObj.put("key",   temp.get("key"));
+            filterObj.put("doc_count", temp.get("doc_count"));
+            libraryConstructionArray.add(filterObj);
+
+        }
+        filterMap.put("Experiment_type",libraryConstructionArray);
         return filterMap;
     }
 
@@ -364,6 +396,11 @@ public class RootSampleServiceImpl implements RootSampleService {
                     sb.append("{ 'term' : { 'taxonomies.");
                     sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
                     sb.append("]}}}}}},");
+                }else {
+                    sb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
+                    sb.append("{ 'bool' : { 'must' : [");
+                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ filterArray[i]+ "'"  );
+                    sb.append("}}]}}}},");
                 }
             }
             sb.append("]}},");
@@ -399,7 +436,10 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'assemblies': {'terms': {'field': 'assemblies_status'}},");
         sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
         sb.append("'annotation': {'terms': {'field': 'annotation_status'}},");
-
+        sb.append("'experiment': { 'nested': { 'path':'experiment'},");
+        sb.append("'aggs':{");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'}");
+        sb.append("}}},");
         sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
         sb.append("'aggs':{");
         sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
@@ -410,6 +450,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
+
         return query;
     }
 
@@ -446,7 +487,10 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
         sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}},");
         sb.append("'taxId':{'terms':{'field':'taxonomies.kingdom.tax_id.keyword', 'size': 20000}}}}}},");
-
+        sb.append("'experiment': { 'nested': { 'path':'experiment'},");
+        sb.append("'aggs':{");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol'}");
+        sb.append("}}},");
         sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
         sb.append("'aggs':{");
         sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
@@ -457,6 +501,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"");
+
         return query;
     }
 
