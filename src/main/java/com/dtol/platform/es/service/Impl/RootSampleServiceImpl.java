@@ -802,6 +802,20 @@ public class RootSampleServiceImpl implements RootSampleService {
         return csv;
     }
 
+    @Override
+    public JSONArray findGisSearchResult(String search) throws ParseException {
+        List<SecondaryOrganism> results = new ArrayList<SecondaryOrganism>();
+        String respString = null;
+        JSONObject jsonResponse = new JSONObject();
+        HashMap<String, Object> response = new HashMap<>();
+        String query = this.getGisSearchQuery(search);
+        respString = this.postRequest("http://" + esConnectionURL + "/gis/_search", query);
+
+        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
+        return respArray;
+
+    }
+
     private ByteArrayInputStream createDataFilesCSV(JSONArray jsonList, String downloadOption) throws IOException {
         String[] header = {};
         if (downloadOption.equalsIgnoreCase("assemblies")) {
@@ -983,6 +997,36 @@ public class RootSampleServiceImpl implements RootSampleService {
         String respString = this.postRequest("http://" + esConnectionURL + "/gis/_search", query);
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
         return respArray;
+    }
+
+    private String getGisSearchQuery(String search) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder searchQuery = new StringBuilder();
+        String[] searchArray = search.split(" ");
+        for (String temp : searchArray) {
+            searchQuery.append("*" + temp + "*");
+        }
+        sb.append("{");
+        sb.append("'from' :" + 0 + ",'size':" + 100000 + ",");
+
+        sb.append("'query': { 'bool': { 'must': [ ");
+
+        sb.append("{'nested': {'path': 'organisms','query': {'bool': {'must': [{'query_string': {");
+        sb.append("'query' : '" + searchQuery.toString() + "',");
+        sb.append("'fields' : ['organisms.organism','organisms.commonName', 'organisms.accession','organisms.lat','organisms.lng']");
+        sb.append("}}]}}}}");
+
+        sb.append(",");
+
+        sb.append("{'nested': {'path': 'specimens','query': {'bool': {'must': [{'query_string': {");
+        sb.append("'query' : '" + searchQuery.toString() + "',");
+        sb.append("'fields' : ['specimens.organism','specimens.commonName', 'specimens.accession','specimens.lat','specimens.lng']");
+        sb.append("}}]}}}}");
+
+        sb.append("]}}}");
+
+        String query = sb.toString().replaceAll("'", "\"");
+        return query;
     }
 
 }

@@ -147,8 +147,15 @@ public class RootOrganismController {
     @ApiOperation(value = "Get GIS Data for Organisms & Specimens")
     @RequestMapping(value = "/gis", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JSONArray> getGisData() throws ParseException {
-        HashMap<String, Object> response = new HashMap<>();
         JSONArray resp = rootSampleService.getGisData();
+        return new ResponseEntity<JSONArray>(resp, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get GIS Search Results")
+    @RequestMapping(value = "/gis/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<JSONArray> findGisSearchResults(@ApiParam(example = "lutra") @RequestParam("filter") String filter) throws ParseException {
+
+        JSONArray resp = rootSampleService.findGisSearchResult(filter);
         return new ResponseEntity<JSONArray>(resp, HttpStatus.OK);
     }
 }
