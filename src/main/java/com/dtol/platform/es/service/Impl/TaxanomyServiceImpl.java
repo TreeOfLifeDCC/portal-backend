@@ -162,48 +162,42 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}");
                             else
                                 filtersb.append("]}},");
-                        }
-                        else if (splitArray[0].trim().equals("Raw data")) {
+                        } else if (splitArray[0].trim().equals("Raw data")) {
                             filtersb.append("{'terms' : {'raw_data':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
                             else
                                 filtersb.append("]}},");
-                        }
-                        else if (splitArray[0].trim().equals("Mapped reads")) {
+                        } else if (splitArray[0].trim().equals("Mapped reads")) {
                             filtersb.append("{'terms' : {'mapped_reads':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
                             else
                                 filtersb.append("]}},");
-                        }
-                        else if (splitArray[0].trim().equals("Assemblies")) {
+                        } else if (splitArray[0].trim().equals("Assemblies")) {
                             filtersb.append("{'terms' : {'assemblies_status':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
                             else
                                 filtersb.append("]}},");
-                        }
-                        else if (splitArray[0].trim().equals("Annotation complete")) {
+                        } else if (splitArray[0].trim().equals("Annotation complete")) {
                             filtersb.append("{'terms' : {'annotation_complete':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
                             else
                                 filtersb.append("]}},");
-                        }
-                        else if (splitArray[0].trim().equals("Annotation")) {
+                        } else if (splitArray[0].trim().equals("Annotation")) {
                             filtersb.append("{'terms' : {'annotation_status':[");
                             filtersb.append("'" + splitArray[1].trim() + "'");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}");
                             else
                                 filtersb.append("]}},");
-                        }
-                        else if (splitArray[0].trim().equals("Genome Notes")) {
+                        } else if (splitArray[0].trim().equals("Genome Notes")) {
                             filtersb.append("{ 'nested': {'path': 'genome_notes','query': {'bool': {'must': [{'exists': {'field': 'genome_notes.id'}}");
                             if (i == (filterArray.length - 1))
                                 filtersb.append("]}}}}");
@@ -211,7 +205,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}}},");
                         } else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
                             filtersb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
-                            filtersb.append("{ 'nested' : { 'path': 'taxonomies."+splitArray[0].trim()+"', 'query' : ");
+                            filtersb.append("{ 'nested' : { 'path': 'taxonomies." + splitArray[0].trim() + "', 'query' : ");
                             filtersb.append("{ 'bool' : { 'must' : [");
                             filtersb.append("{ 'term' : { 'taxonomies.");
                             filtersb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
@@ -219,6 +213,14 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}}}}}");
                             else
                                 filtersb.append("]}}}}}},");
+                        } else {
+                            filtersb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
+                            filtersb.append("{ 'bool' : { 'must' : [");
+                            filtersb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '" + filterArray[i] + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("}}]}}}}");
+                            else
+                                filtersb.append("}}]}}}},");
                         }
                     }
                 }
@@ -285,7 +287,16 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}}}}}");
                             else
                                 filtersb.append("]}}}}}},");
-                        }
+                        } else {
+                            filtersb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
+                            filtersb.append("{ 'bool' : { 'must' : [");
+                            filtersb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ filterArray[i]+ "'"  );
+
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("}}]}}}}");
+                            else
+                                filtersb.append("}}]}}}},");
+                    }
                     }
                 }
             }
