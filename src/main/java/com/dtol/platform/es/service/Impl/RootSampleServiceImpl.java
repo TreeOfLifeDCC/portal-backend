@@ -489,7 +489,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'taxId':{'terms':{'field':'taxonomies.kingdom.tax_id.keyword', 'size': 20000}}}}}},");
         sb.append("'experiment': { 'nested': { 'path':'experiment'},");
         sb.append("'aggs':{");
-        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol'}");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'}");
         sb.append("}}},");
         sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
         sb.append("'aggs':{");
