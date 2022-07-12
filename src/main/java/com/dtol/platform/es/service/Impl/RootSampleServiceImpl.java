@@ -135,11 +135,12 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("{'size':0, 'aggregations':{");
         sb.append("'experiment': { 'nested': { 'path':'experiment'},");
         sb.append("'aggs':{");
-        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'}");
-        sb.append("}}}}}");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'},");
+        sb.append("'aggs' : { 'organism_count' :{ 'cardinality': {  'field': 'experiment.scientific_name.keyword' }}");
+        sb.append("}}}}}}");
 
 
-        System.out.println(sb);
+
         String query = sb.toString().replaceAll("'", "\"");
 
         String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
@@ -151,7 +152,7 @@ public class RootSampleServiceImpl implements RootSampleService {
             JSONObject temp = (JSONObject) libraryConstructionProtocol.get(j);
             JSONObject filterObj = new JSONObject();
             filterObj.put("key",   temp.get("key"));
-            filterObj.put("doc_count", temp.get("doc_count"));
+            filterObj.put("doc_count", ((JSONObject ) temp.get("organism_count")).get("value"));
             libraryConstructionArray.add(filterObj);
 
         }
@@ -450,7 +451,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
-
+        System.out.println(query);
         return query;
     }
 
