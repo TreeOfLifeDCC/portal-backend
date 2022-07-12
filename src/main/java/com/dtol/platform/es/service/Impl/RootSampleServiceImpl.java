@@ -1013,14 +1013,14 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         sb.append("{'nested': {'path': 'organisms','query': {'bool': {'must': [{'query_string': {");
         sb.append("'query' : '" + searchQuery.toString() + "',");
-        sb.append("'fields' : ['organisms.organism','organisms.commonName', 'organisms.accession','organisms.lat','organisms.lng']");
+        sb.append("'fields' : ['organisms.organism.normalize','organisms.commonName.normalize', 'organisms.accession.normalize','organisms.lat','organisms.lng']");
         sb.append("}}]}}}}");
 
         sb.append(",");
 
         sb.append("{'nested': {'path': 'specimens','query': {'bool': {'must': [{'query_string': {");
         sb.append("'query' : '" + searchQuery.toString() + "',");
-        sb.append("'fields' : ['specimens.organism','specimens.commonName', 'specimens.accession','specimens.lat','specimens.lng']");
+        sb.append("'fields' : ['specimens.organism.normalize','specimens.commonName.normalize', 'specimens.accession.normalize','specimens.lat','specimens.lng']");
         sb.append("}}]}}}}");
 
         sb.append("]}}}");
