@@ -142,7 +142,7 @@ public class RootSampleServiceImpl implements RootSampleService {
 
 
         String query = sb.toString().replaceAll("'", "\"");
-        System.out.print(query);
+
         String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("experiment")).get("library_construction_protocol");
         JSONArray libraryConstructionProtocol = (JSONArray) (aggregations.get("buckets"));
@@ -452,7 +452,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
-        System.out.println(query);
+
         return query;
     }
 
@@ -896,7 +896,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                             List<String> record = Arrays.asList(gtf,
                                     gff3, proteinsFasta, transcriptsFasta, softmaskedGenomesFasta);
                             csvPrinter.printRecord(record);
-                            System.out.println(record);
+
                         }
 
                     }
