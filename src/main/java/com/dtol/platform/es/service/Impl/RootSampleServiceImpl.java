@@ -1009,7 +1009,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("{");
         sb.append("'from' :" + 0 + ",'size':" + 100000 + ",");
 
-        sb.append("'query': { 'bool': { 'must': [ ");
+        sb.append("'query': { 'bool': { 'should': [ ");
 
         sb.append("{'nested': {'path': 'organisms','query': {'bool': {'must': [{'query_string': {");
         sb.append("'query' : '" + searchQuery.toString() + "',");
