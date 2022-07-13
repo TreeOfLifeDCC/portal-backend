@@ -135,13 +135,14 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("{'size':0, 'aggregations':{");
         sb.append("'experiment': { 'nested': { 'path':'experiment'},");
         sb.append("'aggs':{");
-        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'}");
-        sb.append("}}}}}");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'},");
+        sb.append("'aggs' : { 'organism_count' : { 'reverse_nested' : {}}");
+        sb.append("}}}}}}");
 
 
-        System.out.println(sb);
+
         String query = sb.toString().replaceAll("'", "\"");
-
+        System.out.print(query);
         String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("experiment")).get("library_construction_protocol");
         JSONArray libraryConstructionProtocol = (JSONArray) (aggregations.get("buckets"));
@@ -151,7 +152,7 @@ public class RootSampleServiceImpl implements RootSampleService {
             JSONObject temp = (JSONObject) libraryConstructionProtocol.get(j);
             JSONObject filterObj = new JSONObject();
             filterObj.put("key",   temp.get("key"));
-            filterObj.put("doc_count", temp.get("doc_count"));
+            filterObj.put("organism_count", ((JSONObject ) temp.get("organism_count")));
             libraryConstructionArray.add(filterObj);
 
         }
@@ -438,8 +439,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'annotation': {'terms': {'field': 'annotation_status'}},");
         sb.append("'experiment': { 'nested': { 'path':'experiment'},");
         sb.append("'aggs':{");
-        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'}");
-        sb.append("}}},");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'},");
+        sb.append("'aggs' : { 'organism_count' : { 'reverse_nested' : {}}");
+        sb.append("}}}},");
         sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
         sb.append("'aggs':{");
         sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
@@ -450,7 +452,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
-
+        System.out.println(query);
         return query;
     }
 
