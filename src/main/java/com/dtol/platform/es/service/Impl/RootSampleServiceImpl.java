@@ -357,7 +357,12 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         if (filter.isPresent() && (!filter.get().equals("undefined") && !filter.get().equals(""))) {
             String[] filterArray = filter.get().split(",");
-            sb.append(sbt.toString() + ",");
+            if(taxonomyFilter.isPresent() && !taxonomyFilter.get().equals("undefined")) {
+                String taxArray = taxonomyFilter.get().toString();
+                JSONArray taxaTree = (JSONArray) (new JSONParser().parse(taxArray));
+                if(taxaTree.size() > 0)
+                    sb.append(sbt.toString() + ",");
+            }
             for (int i = 0; i < filterArray.length; i++) {
                 String[] splitArray = filterArray[i].split("-");
 
