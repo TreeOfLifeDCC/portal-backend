@@ -818,7 +818,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getGisSearchQuery(search);
-        respString = this.postRequest("http://" + esConnectionURL + "/gis/_search", query);
+        respString = this.postRequest("https://" + esConnectionURL + "/gis/_search", query);
 
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
         return respArray;
@@ -1003,7 +1003,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/gis/_search", query);
+        String respString = this.postRequest("https://" + esConnectionURL + "/gis/_search", query);
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
         return respArray;
     }
