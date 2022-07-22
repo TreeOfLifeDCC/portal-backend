@@ -60,6 +60,13 @@ public class RootOrganismController {
         Map<String, List<JSONObject>> resp = rootSampleService.getRootOrganismFilters();
         return new ResponseEntity<Map<String, List<JSONObject>>>(resp, HttpStatus.OK);
     }
+    @ApiOperation(value = "Get Filters for Filtering Root Organisms on Experiment Type")
+    @RequestMapping(value = "/root/experiment-type/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, List<JSONObject>>> getExperimentTypeFilters() throws ParseException {
+        Map<String, List<JSONObject>> resp = rootSampleService.getExperimentTypeFilters();
+        return new ResponseEntity<Map<String, List<JSONObject>>>(resp, HttpStatus.OK);
+    }
+
 
     @ApiIgnore
     @ApiOperation(value = "Get Filters for Filtering Secondary Organisms")
@@ -135,5 +142,20 @@ public class RootOrganismController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.parseMediaType("application/csv"))
                 .body(file);
+    }
+
+    @ApiOperation(value = "Get GIS Data for Organisms & Specimens")
+    @RequestMapping(value = "/gis", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<JSONArray> getGisData() throws ParseException {
+        JSONArray resp = rootSampleService.getGisData();
+        return new ResponseEntity<JSONArray>(resp, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get GIS Search Results")
+    @RequestMapping(value = "/gis/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<JSONArray> findGisSearchResults(@ApiParam(example = "lutra") @RequestParam("filter") String filter) throws ParseException {
+
+        JSONArray resp = rootSampleService.findGisSearchResult(filter);
+        return new ResponseEntity<JSONArray>(resp, HttpStatus.OK);
     }
 }
