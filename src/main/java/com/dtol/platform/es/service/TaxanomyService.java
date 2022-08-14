@@ -24,4 +24,8 @@ public interface TaxanomyService {
 
     public String phylogeneticTreeSearch(String param);
 
+    public String getPhylogeneticSpecialRankTree();
+
+    public String phylogeneticSpecialRankTreeSearch(String param);
+
 }
