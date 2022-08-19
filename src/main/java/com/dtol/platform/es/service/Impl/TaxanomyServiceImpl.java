@@ -520,13 +520,12 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             root.put("name", "Eukaryota");
             root.put("parentId", 0);
             root.put("commonName", "eucaryotes");
-            root.put("child", resultList);
+            root.put("children", resultList);
 
         } catch (ParseException e) {
             e.printStackTrace();
         }
         String response = root.toJSONString();
-//        response = response.replaceAll("child","children");
         return response;
     }
 
@@ -558,13 +557,12 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             root.put("name", "Eukaryota");
             root.put("parentId", 0);
             root.put("commonName", "eucaryotes");
-            root.put("child", resultList);
+            root.put("children", resultList);
 
         } catch (ParseException e) {
             e.printStackTrace();
         }
         String response = root.toJSONString();
-//        response = response.replaceAll("child","children");
         return response;
     }
 }
