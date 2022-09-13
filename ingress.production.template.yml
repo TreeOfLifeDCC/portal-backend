@@ -5,13 +5,8 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  tls:
-    - hosts:
-        - portal.darwintreeoflife.org
-      secretName: tls-msecret
   rules:
-    - host: portal.darwintreeoflife.org
-      http:
+    - http:
         paths:
           - path: /api(/|$)(.*)
             backend:
