@@ -48,6 +48,8 @@ public interface RootSampleService {
 
     public String getGisData(String search, Optional<String> filter) throws ParseException;
 
+    JSONArray getGisData() throws ParseException;
+
     ByteArrayInputStream getDataFiles(Optional<String> search, Optional<String> filter,Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter,String downloadOption) throws ParseException, IOException;
 
     public JSONArray findGisSearchResult(String search) throws ParseException;
