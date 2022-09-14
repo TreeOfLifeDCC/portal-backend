@@ -145,11 +145,20 @@ public class RootOrganismController {
     }
 
     @ApiOperation(value = "Get GIS Data for Organisms & Specimens")
+    @RequestMapping(value = "/gis-filter", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getGisData(@ApiParam(example = "Submitted to BioSamples") @RequestBody Optional<String> filter,
+                                                @ApiParam(example = "Salmo") @RequestParam(value = "searchText", required = false) String search) throws ParseException {
+        String resp = rootSampleService.getGisData(search, filter );
+        return new ResponseEntity<String>(resp, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get GIS Data for Organisms & Specimens")
     @RequestMapping(value = "/gis", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JSONArray> getGisData() throws ParseException {
         JSONArray resp = rootSampleService.getGisData();
         return new ResponseEntity<JSONArray>(resp, HttpStatus.OK);
     }
+
 
     @ApiOperation(value = "Get GIS Search Results")
     @RequestMapping(value = "/gis/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

@@ -994,17 +994,12 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public JSONArray getGisData() throws ParseException {
+    public String getGisData(String search, Optional<String> filter) throws ParseException {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("'from' :0 ,'size':1000000,");
-        sb.append("'query' : { 'match_all' : {}}");
-        sb.append("}");
-
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/gis/_search", query);
-        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
-        return respArray;
+        String respString = this.postRequest("http://" + esConnectionURL + "/gis_filter_data/_search", getGisFilterQuery(filter,search));
+
+        return respString;
     }
 
     private String getGisSearchQuery(String search) {
@@ -1034,7 +1029,149 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("]}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
+
         return query;
     }
+
+
+    private String getGisFilterQuery( Optional<String> filter, String search) throws ParseException {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sbt = new StringBuilder();
+
+        Boolean isPhylogenyFilter = false;
+        String phylogenyRank = "";
+        String phylogenyTaxId = "";
+        StringBuilder searchQuery = new StringBuilder();
+
+        sb.append("{");
+
+        sb.append("'from' :" + 0 + ",'size':" + 100000 + ",");
+
+        sb.append("'query': { 'bool': { 'must': [ ");
+
+        if (!StringUtil.isNullOrEmpty(search)) {
+            String[] searchArray = search.split(" ");
+            for (String temp : searchArray) {
+                searchQuery.append("*" + temp + "*");
+            }
+            sb.append("{'nested': {'path': 'organisms','query': {'bool': {'must': [{'query_string': {");
+            sb.append("'query' : '" + searchQuery.toString() + "',");
+            sb.append("'fields' : ['organisms.organism.normalize','organisms.commonName.normalize', 'organisms.accession.normalize','organisms.lat','organisms.lng']");
+            sb.append("}}]}}}}");
+
+            sb.append(",");
+
+            sb.append("{'nested': {'path': 'specimens','query': {'bool': {'must': [{'query_string': {");
+            sb.append("'query' : '" + searchQuery.toString() + "',");
+            sb.append("'fields' : ['specimens.organism.normalize','specimens.commonName.normalize', 'specimens.accession.normalize','specimens.lat','specimens.lng']");
+            sb.append("}}]}}}}");
+            sb.append(",");
+
+        }
+
+        if (filter.isPresent() && (!filter.get().equals("undefined") && !filter.get().equals(""))) {
+            String[] filterArray = filter.get().split(",");
+            for (int i = 0; i < filterArray.length; i++) {
+                String[] splitArray = filterArray[i].split("-");
+
+                if (splitArray[0].trim().equals("Biosamples")) {
+                    sb.append("{'terms' : {'biosamples':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Raw data")) {
+                    sb.append("{'terms' : {'raw_data':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Mapped reads")) {
+                    sb.append("{'terms' : {'mapped_reads':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Assemblies")) {
+                    sb.append("{'terms' : {'assemblies_status':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Annotation complete")) {
+                    sb.append("{'terms' : {'annotation_complete':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Annotation")) {
+                    sb.append("{'terms' : {'annotation_status':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Genome Notes")) {
+                    sb.append("{ 'nested': {'path': 'genome_notes','query': {'bool': {'must': [{'exists': {'field': 'genome_notes.url'}}]}}}},");
+                } else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
+                    isPhylogenyFilter = true;
+                    phylogenyRank = splitArray[0].trim();
+                    phylogenyTaxId = splitArray[1].trim();
+                    sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                    sb.append("{ 'nested' : { 'path': 'taxonomies." + splitArray[0].trim() + "', 'query' : ");
+                    sb.append("{ 'bool' : { 'must' : [");
+                    sb.append("{ 'term' : { 'taxonomies.");
+                    sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
+                    sb.append("]}}}}}},");
+                }else {
+                    sb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
+                    sb.append("{ 'bool' : { 'must' : [");
+                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ filterArray[i]+ "'"  );
+                    sb.append("}}]}}}},");
+                }
+            }
+            sb.append("]}},");
+        } else {
+            sb.append(sbt.toString());
+            sb.append("]}},");
+        }
+
+        sb.append("'aggregations': {");
+        sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
+        sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}},");
+        sb.append("'taxId':{'terms':{'field':'taxonomies.kingdom.tax_id.keyword', 'size': 20000}}}}}},");
+        if (isPhylogenyFilter) {
+            sb.append("'childRank': { 'nested': { 'path':'taxonomies." + phylogenyRank + "'},");
+            sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies." + phylogenyRank + ".scientificName', 'size': 20000},");
+            sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + phylogenyRank + ".commonName', 'size': 20000}},");
+            sb.append("'taxId':{'terms':{'field':'taxonomies." + phylogenyRank + ".tax_id.keyword', 'size': 20000}}}}}},");
+        }
+
+        sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
+        sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
+        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
+        sb.append("'assemblies': {'terms': {'field': 'assemblies_status'}},");
+        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
+        sb.append("'annotation': {'terms': {'field': 'annotation_status'}},");
+        sb.append("'experiment': { 'nested': { 'path':'experiment'},");
+        sb.append("'aggs':{");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'},");
+        sb.append("'aggs' : { 'organism_count' : { 'reverse_nested' : {}}");
+        sb.append("}}}},");
+        sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
+        sb.append("'aggs':{");
+        sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
+        sb.append("}}}");
+
+        sb.append("}");
+
+        sb.append("}");
+
+        String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
+        return query;
+    }
+
+    @Override
+    public JSONArray getGisData() throws ParseException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'from' :0 ,'size':1000000,");
+        sb.append("'query' : { 'match_all' : {}}");
+        sb.append("}");
+
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest("http://" + esConnectionURL + "/gis/_search", query);
+        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
+        return respArray;
+    }
+
 
 }
