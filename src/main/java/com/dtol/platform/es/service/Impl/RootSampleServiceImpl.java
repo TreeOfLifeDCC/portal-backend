@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,7 +45,7 @@ public class RootSampleServiceImpl implements RootSampleService {
     static final String[] taxaRankArray = {"superkingdom", "kingdom", "subkingdom", "superphylum", "phylum", "subphylum", "superclass", "class", "subclass", "infraclass", "cohort", "subcohort", "superorder", "order", "suborder", "infraorder", "parvorder", "section", "subsection", "superfamily", "family", "subfamily", "tribe", "subtribe", "genus", "series", "subgenus", "species_group", "species_subgroup", "species", "subspecies", "varietas", "forma"};
 
     @Override
-    public JSONArray findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException {
+    public String findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> search, Optional<String> filter, Optional<String> taxonomyFilter) throws ParseException {
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
 
@@ -56,9 +57,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
-        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
-        return respArray;
+        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", getOrganismFilterQuery(search, filter, String.valueOf(page),String.valueOf(size), sortColumn, sortOrder,  taxonomyFilter));
+//        JSONArray respArray = ((JSONObject) new JSONParser().parse(respString));
+        return respString;
     }
 
 
@@ -457,7 +458,7 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
-
+        System.out.println(query);
         return query;
     }
 
@@ -708,7 +709,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 String goatInfo = "";
                 String genome = "";
                 String tolqc = "";
-                String tolid = "-";
+                JSONArray tolids;
 
                 organism = obj.get("organism").toString();
 
@@ -725,15 +726,19 @@ public class RootSampleServiceImpl implements RootSampleService {
                     goatInfo = ((JSONObject) obj.get("goat_info")).get("url").toString();
                 }
                 if (obj.get("tolid") != null) {
-                    tolid = obj.get("tolid").toString();
+                    tolids = ((JSONArray) obj.get("tolid"));
                     String organismName = organism.replaceAll(" ", "-");
-                    String clade = tolCodes.get(Character.toString(tolid.charAt(0))).toString();
-                    tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
+                    if (tolids.size() > 0) {
+                        String clade = tolCodes.get(Character.toString(String.valueOf(tolids.get(0)).charAt(0))).toString();
+                        tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
+                    }
+                }else{
+                    tolids= new JSONArray();
                 }
                 String externalRef = (!goatInfo.isEmpty() ? goatInfo + ";" : "") + (!tolqc.isEmpty() ? tolqc + ";" : "") + (!genome.isEmpty() ? genome : "");
 
                 List<String> record = Arrays.asList(
-                        organism, tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
+                        organism, String.join(", " ,tolids), insdc, commonName, obj.get("currentStatus").toString(), externalRef);
                 csvPrinter.printRecord(record);
             }
             csvPrinter.flush();
