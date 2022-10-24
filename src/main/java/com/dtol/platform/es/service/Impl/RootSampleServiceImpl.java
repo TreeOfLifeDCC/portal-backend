@@ -708,7 +708,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 String goatInfo = "";
                 String genome = "";
                 String tolqc = "";
-                String tolid = "-";
+                JSONArray tolids ;
 
                 organism = obj.get("organism").toString();
 
@@ -725,16 +725,23 @@ public class RootSampleServiceImpl implements RootSampleService {
                     goatInfo = ((JSONObject) obj.get("goat_info")).get("url").toString();
                 }
                 if (obj.get("tolid") != null) {
-                    tolid = obj.get("tolid").toString();
+                    tolids = ((JSONArray) obj.get("tolid"));
                     String organismName = organism.replaceAll(" ", "-");
-                    String clade = tolCodes.get(Character.toString(tolid.charAt(0))).toString();
-                    tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
+                    if (tolids.size() > 0) {
+                        String clade = tolCodes.get(Character.toString(String.valueOf(tolids.get(0)).charAt(0))).toString();
+                        tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
+                    }
+                }else{
+                    String empty="-";
+                    tolids= new JSONArray();
+                    tolids.add(empty);
                 }
                 String externalRef = (!goatInfo.isEmpty() ? goatInfo + ";" : "") + (!tolqc.isEmpty() ? tolqc + ";" : "") + (!genome.isEmpty() ? genome : "");
 
                 List<String> record = Arrays.asList(
-                        organism, tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
+                        organism, String.join(", " ,tolids), insdc, commonName, obj.get("currentStatus").toString(), externalRef);
                 csvPrinter.printRecord(record);
+
             }
             csvPrinter.flush();
             return new ByteArrayInputStream(out.toByteArray());
