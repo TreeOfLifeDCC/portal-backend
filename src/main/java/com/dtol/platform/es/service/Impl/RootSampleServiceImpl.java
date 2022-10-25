@@ -733,6 +733,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                         tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
                     }
                 }else{
+                    
                     String empty="-";
                     tolids= new JSONArray();
                     tolids.add(empty);
