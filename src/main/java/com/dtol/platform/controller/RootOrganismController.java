@@ -35,7 +35,7 @@ public class RootOrganismController {
     RootSampleService rootSampleService;
 
     @ApiOperation(value = "View a list of Root Organisms")
-    @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HashMap<String, Object>> getAllRootOrganisms(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                                        @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
                                                                        @RequestParam(name = "sortColumn", required = false) Optional<String> sortColumn,
@@ -47,7 +47,9 @@ public class RootOrganismController {
         String resp = rootSampleService.findAllOrganisms(offset, limit, sortColumn, sortOrder,search,filter,taxonomyFilter);
         long count = rootSampleService.getRootOrganismCount();
         response.put("rootSamples", ((JSONObject) new JSONParser().parse(resp)));
-        response.put("count", count);
+        JSONObject countVAlue = (JSONObject) new JSONParser().parse(resp);
+
+        response.put("count", (Long) ((JSONObject)((JSONObject) countVAlue.get("hits")).get("total")).get("value"));
         return new ResponseEntity<HashMap<String, Object>>(response, HttpStatus.OK);
     }
 
