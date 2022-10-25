@@ -733,13 +733,16 @@ public class RootSampleServiceImpl implements RootSampleService {
                         tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
                     }
                 }else{
+                    String empty="-";
                     tolids= new JSONArray();
+                    tolids.add(empty);
                 }
                 String externalRef = (!goatInfo.isEmpty() ? goatInfo + ";" : "") + (!tolqc.isEmpty() ? tolqc + ";" : "") + (!genome.isEmpty() ? genome : "");
 
                 List<String> record = Arrays.asList(
                         organism, String.join(", " ,tolids), insdc, commonName, obj.get("currentStatus").toString(), externalRef);
                 csvPrinter.printRecord(record);
+
             }
             csvPrinter.flush();
             return new ByteArrayInputStream(out.toByteArray());
