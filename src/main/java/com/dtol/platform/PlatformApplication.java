@@ -2,16 +2,9 @@ package com.dtol.platform;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.servlet.function.RouterFunction;
-import org.springframework.web.servlet.function.ServerResponse;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
-import java.net.URI;
-
-import static org.springframework.web.servlet.function.RequestPredicates.GET;
-import static org.springframework.web.servlet.function.RouterFunctions.route;
-
-@SpringBootApplication
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
 public class PlatformApplication {
 
     public static void main(String[] args) {
