@@ -1,5 +1,7 @@
 package com.dtol.platform.config;
 
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,18 +20,19 @@ public class ElasticSearchConfig {
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
 
-    @Bean
-    public RestHighLevelClient client() {
-        ClientConfiguration clientConfiguration
-                = ClientConfiguration.builder()
-                .connectedTo(esConnectionURL)
-                .build();
+//    @Bean
+//    public RestHighLevelClient client() {
+//        ClientConfiguration clientConfiguration
+//                = ClientConfiguration.builder()
+//                .connectedTo(esConnectionURL)
+//                .withBasicAuth("elastic","ZG71gVFpLPB27hTF5xS8P3Vi")
+//                .build();
+//
+//        return RestClients.create(clientConfiguration).rest();
+//    }
 
-        return RestClients.create(clientConfiguration).rest();
-    }
-
-    @Bean
-    public ElasticsearchOperations elasticsearchTemplate() {
-        return new ElasticsearchRestTemplate(client());
-    }
+//    @Bean
+//    public ElasticsearchOperations elasticsearchTemplate() {
+//        return new ElasticsearchRestTemplate(client());
+//    }
 }
