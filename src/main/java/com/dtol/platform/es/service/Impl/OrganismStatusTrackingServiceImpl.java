@@ -89,7 +89,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("'aggregations':{ 'status': {'terms':{'field':'trackingSystem.status'}");
         sb.append("}}}}}}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("http://" + esConnectionURL + "/tracking_status_index/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/tracking_status_index/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("trackingSystem")).get("rank");
         JSONArray trackFilterArray = (JSONArray) (aggregations.get("buckets"));
         for(int i=0; i<trackFilterArray.size();i++) {
