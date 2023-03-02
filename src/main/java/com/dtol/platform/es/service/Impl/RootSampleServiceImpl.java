@@ -90,7 +90,7 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("trackingSystem")).get("rank");
         JSONArray trackFilterArray = (JSONArray) (aggregations.get("buckets"));
         for (int i = 0; i < trackFilterArray.size(); i++) {
@@ -150,7 +150,7 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("http://" + esConnectionURL + "/data_portal/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("experiment")).get("library_construction_protocol");
         JSONArray libraryConstructionProtocol = (JSONArray) (aggregations.get("buckets"));
 
