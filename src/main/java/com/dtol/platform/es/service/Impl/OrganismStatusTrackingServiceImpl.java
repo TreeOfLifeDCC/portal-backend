@@ -261,7 +261,6 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
 
         if (filter.isPresent() && (!filter.get().equals("undefined") && !filter.get().equals(""))) {
             String[] filterArray = filter.get().split(",");
-            sb.append(sbt.toString() + ",");
             for (int i = 0; i < filterArray.length; i++) {
                 String[] splitArray = filterArray[i].split("-");
 
