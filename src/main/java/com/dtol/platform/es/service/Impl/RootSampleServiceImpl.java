@@ -1187,7 +1187,6 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'from' :0 ,'size':1000000,");
         sb.append("'query' : { 'match_all' : {}}");
         sb.append("}");
-
         String query = sb.toString().replaceAll("'", "\"");
         String respString = this.postRequest( esConnectionURL + "/gis/_search", query);
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
