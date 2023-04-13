@@ -12,20 +12,20 @@ import java.util.Optional;
 
 public interface TaxanomyService {
 
-    public String findTaxanomiesByParent(String parent);
+     String findTaxanomiesByParent(String parent);
 
-    public Boolean findIfTaxanomyHasChild(String organism);
+     Boolean findIfTaxanomyHasChild(String organism);
 
-    public String getTaxonomicRanksAndCounts(Optional<String> taxonomy) throws ParseException;
+     String getTaxonomicRanksAndCounts(Optional<String> taxonomy) throws ParseException;
 
-    public String getChildTaxonomyRank(Optional<String> search, Optional<String> filter, String taxonomy, String value, String childRank, String taxaTree, String type) throws ParseException;
+     String getChildTaxonomyRank(Optional<String> search, Optional<String> filter, String taxonomy, String value, String childRank, String taxaTree, String type) throws ParseException;
 
-    public String getPhylogeneticTree();
+     String getPhylogeneticTree();
 
-    public String phylogeneticTreeSearch(String param);
+     String phylogeneticTreeSearch(String param);
 
-    public String getPhylogeneticSpecialRankTree();
+     String getPhylogeneticSpecialRankTree();
 
-    public String phylogeneticSpecialRankTreeSearch(String param);
+     String phylogeneticSpecialRankTreeSearch(String param);
 
 }
