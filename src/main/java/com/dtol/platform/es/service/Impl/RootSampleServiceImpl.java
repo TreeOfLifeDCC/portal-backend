@@ -738,7 +738,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 }
                 if (obj.get("tolid") != null) {
                     tolids = ((JSONArray) obj.get("tolid"));
-                    if (tolids.size() > 0 && tolids.get(0) != "") {
+                    if (tolids.size() > 0 && (tolids.get(0)!= null && tolids.get(0).toString().length() > 0 )) {
                         String organismName = organism.replaceAll(" ", "-");
                         String clade = tolCodes.get(Character.toString(String.valueOf(tolids.get(0)).charAt(0))).toString();
                         tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
