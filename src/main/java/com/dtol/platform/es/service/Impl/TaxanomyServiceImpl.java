@@ -33,10 +33,10 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
-    @Value("${ES_USERNAME}")
-    String esUsername;
-    @Value("${ES_PASSWORD}")
-    String esPassword;
+//    @Value("${ES_USERNAME}")
+//    String esUsername;
+//    @Value("${ES_PASSWORD}")
+//    String esPassword;
     @Autowired
     Driver driver;
 
@@ -52,7 +52,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest( esConnectionURL + "/ontology/_search", query);
+        String respString = this.postRequest( "http://" +esConnectionURL + "/ontology/_search", query);
 
         return respString;
     }
@@ -78,7 +78,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest( esConnectionURL + "/data_portal/_search", query);
+        String respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
 
         return aggregations.toJSONString();
@@ -92,7 +92,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         JSONArray taxaTree = (JSONArray) new JSONParser().parse(tree);
 
         JSONArray childDataArray = new JSONArray();
-        String esURL =  esConnectionURL;
+        String esURL = "http://" + esConnectionURL;
         StringBuilder searchQuery = new StringBuilder();
 
         if(search.isPresent()) {
@@ -436,7 +436,7 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
 
-            httpPost.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
+//            httpPost.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
             CloseableHttpResponse rs = client.execute(httpPost);
             resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
         } catch (IOException e) {

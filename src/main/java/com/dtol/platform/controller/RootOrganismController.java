@@ -53,12 +53,12 @@ public class RootOrganismController {
         return new ResponseEntity<HashMap<String, Object>>(response, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Root Organism By Name")
-    @RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RootOrganism> getRootOrganismByName(@ApiParam(example = "Lutra lutra") @PathVariable("name") String name) {
-        RootOrganism rs = rootSampleService.findRootSampleByOrganism(name);
-        return new ResponseEntity<RootOrganism>(rs, HttpStatus.OK);
-    }
+//    @ApiOperation(value = "Get Root Organism By Name")
+//    @RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<RootOrganism> getRootOrganismByName(@ApiParam(example = "Lutra lutra") @PathVariable("name") String name) {
+//        RootOrganism rs = rootSampleService.findRootSampleByOrganism(name);
+//        return new ResponseEntity<RootOrganism>(rs, HttpStatus.OK);
+//    }
 
     @ApiOperation(value = "Get Filters for Filtering Root Organisms")
     @RequestMapping(value = "/root/filters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

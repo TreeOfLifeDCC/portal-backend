@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-backend
+  namespace: portal-backend-2622-backend
+  labels:
+    app: portal-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: portal-backend
+  template:
+    metadata:
+      labels:
+        app: portal-backend
+    spec:
+      containers:
+        - name: springbootapp
+          image: raheelaqw1024/species-backend:latest-1
+          imagePullPolicy: "Always"
+          env:
+            - name: ES_CONNECTION_URL
+              value: elasticsearch:9200
+          ports:
+            - containerPort: 8080
+      initContainers:
+        - name: init-elasticsearch
+          image: busybox
+          command: ['sh', '-c', 'until nslookup elasticsearch.elasticsearch.svc.cluster.local; do echo waiting for myservice; sleep 2; done;']
+      imagePullSecrets:
+        - name: gitlab-registry

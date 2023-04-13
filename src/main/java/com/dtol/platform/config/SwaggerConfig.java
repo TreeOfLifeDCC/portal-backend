@@ -3,6 +3,7 @@ package com.dtol.platform.config;
 import com.dtol.platform.es.mapping.SecondaryOrganism;
 import com.dtol.platform.es.mapping.StatusTracking;
 import com.fasterxml.classmate.TypeResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -17,9 +18,12 @@ import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
 public class SwaggerConfig implements WebMvcConfigurer {
+
+
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .host("portal.darwintreeoflife.org")
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.dtol.platform.controller"))
                 .paths(PathSelectors.any())
@@ -44,7 +48,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 "Sequencing all 70,000 eukaryotic species of Britain and Ireland",
                 "1.0",
                 "Terms of service",
-                "Talal Ibrahim",
+                "Raheela Aslam",
                 "Apache License Version 2.0",
                 "https://www.apache.org/licenses/LICENSE-2.0");
         return apiInfo;
