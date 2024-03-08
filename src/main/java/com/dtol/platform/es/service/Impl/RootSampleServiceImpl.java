@@ -322,9 +322,13 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'query' : { 'bool' : { 'must' : [");
 
         if (searchQuery.length() != 0) {
-            sb.append("{'query_string': {");
+            sb.append("{'multi_match': {");
+            sb.append("'operator': 'AND',");
             sb.append("'query' : '" + searchQuery.toString() + "',");
-            sb.append("'fields' : ['organism.normalize','commonName.normalize', 'biosamples','raw_data','mapped_reads','assemblies_status','annotation_complete','annotation_status']");
+            sb.append("'fields' : ['organism.autocomp', 'commonName.autocomp', 'biosamples.autocomp','raw_data.autocomp'," +
+                    "'mapped_reads.autocomp'," +
+                    "'assemblies_status.autocomp','annotation_complete.autocomp','annotation_status.autocomp', " +
+                    "'symbionts_records.organism.text.autocomp']");
             sb.append("}},");
         }
 
@@ -409,10 +413,26 @@ public class RootSampleServiceImpl implements RootSampleService {
                     sb.append("{ 'term' : { 'taxonomies.");
                     sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
                     sb.append("]}}}}}},");
-                }else {
+                } else if (splitArray[0].trim().equals("symbiontsBioSamplesStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsBioSamplesStatus-", "");
+                    sb.append("{'terms' : {'symbionts_biosamples_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("symbiontsRawDataStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsRawDataStatus-", "");
+                    sb.append("{'terms' : {'symbionts_raw_data_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("symbiontsAssembliesStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsAssembliesStatus-", "");
+                    sb.append("{'terms' : {'symbionts_assemblies_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("experimentType")) {
+                    String experimentTypeFilter = filterArray[i].trim().replaceFirst("experimentType-", "");
                     sb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
                     sb.append("{ 'bool' : { 'must' : [");
-                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ filterArray[i]+ "'"  );
+                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ experimentTypeFilter.trim()+ "'"  );
                     sb.append("}}]}}}},");
                 }
             }
@@ -443,6 +463,9 @@ public class RootSampleServiceImpl implements RootSampleService {
             sb.append("'taxId':{'terms':{'field':'taxonomies." + phylogenyRank + ".tax_id.keyword', 'size': 20000}}}}}},");
         }
 
+        sb.append("'symbionts_biosamples_status': {'terms': {'field': 'symbionts_biosamples_status'}},");
+        sb.append("'symbionts_raw_data_status': {'terms': {'field': 'symbionts_raw_data_status'}},");
+        sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}},");
         sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
         sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
@@ -484,13 +507,21 @@ public class RootSampleServiceImpl implements RootSampleService {
         }
         if (sort.length() != 0)
             sb.append(sort);
-        sb.append("'query': {");
-        sb.append("'query_string': {");
+
+        sb.append("'query' : ");
+        sb.append("{'multi_match': {");
+        sb.append("'operator': 'AND',");
         sb.append("'query' : '" + searchQuery.toString() + "',");
-        sb.append("'fields' : ['organism.normalize','commonName.normalize', 'biosamples','raw_data','mapped_reads','assemblies_status','annotation_complete','annotation_status']");
+        sb.append("'fields' : ['organism.autocomp', 'commonName.autocomp', 'biosamples.autocomp','raw_data.autocomp'," +
+                "'mapped_reads.autocomp'," +
+                "'assemblies_status.autocomp','annotation_complete.autocomp','annotation_status.autocomp', " +
+                "'symbionts_records.organism.text.autocomp']");
         sb.append("}},");
 
         sb.append("'aggregations': {");
+        sb.append("'symbionts_biosamples_status': {'terms': {'field': 'symbionts_biosamples_status'}},");
+        sb.append("'symbionts_raw_data_status': {'terms': {'field': 'symbionts_raw_data_status'}},");
+        sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}},");
         sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
         sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
@@ -1131,10 +1162,11 @@ public class RootSampleServiceImpl implements RootSampleService {
                     sb.append("{ 'term' : { 'taxonomies.");
                     sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
                     sb.append("]}}}}}},");
-                }else {
+                } else if (splitArray[0].trim().equals("experimentType")) {
+                    String experimentTypeFilter = filterArray[i].trim().replaceFirst("experimentType-", "");
                     sb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
                     sb.append("{ 'bool' : { 'must' : [");
-                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ filterArray[i]+ "'"  );
+                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ experimentTypeFilter.trim()+ "'"  );
                     sb.append("}}]}}}},");
                 }
             }
