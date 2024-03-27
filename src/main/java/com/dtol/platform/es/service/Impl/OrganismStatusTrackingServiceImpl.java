@@ -87,7 +87,11 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("'rank':{'terms':{'field':'trackingSystem.rank', 'order': { '_key' : 'desc' }},");
         sb.append("'aggregations':{ 'name': {'terms':{'field':'trackingSystem.name'},");
         sb.append("'aggregations':{ 'status': {'terms':{'field':'trackingSystem.status'}");
-        sb.append("}}}}}}}}}");
+        sb.append("}}}}}}},");
+        sb.append("'symbionts_biosamples_status': {'terms': {'field': 'symbionts_biosamples_status'}},");
+        sb.append("'symbionts_raw_data_status': {'terms': {'field': 'symbionts_raw_data_status'}},");
+        sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}}");
+        sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
         String respString = this.postRequest( "http://" +esConnectionURL + "/tracking_status_index/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("trackingSystem")).get("rank");
@@ -120,6 +124,32 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                 statusArray.add(filterObj);
             }
             filterMap.put(trackObj.get("key").toString(), statusArray);
+        }
+
+        // symbionts
+        List<JSONObject> statusArr = new ArrayList<JSONObject>();
+        JSONObject mainsAgg = (JSONObject)(( ((JSONObject) new JSONParser().parse(respString)).get("aggregations")));
+
+        // symbionts
+        JSONArray symbionts_biosamples_arr = (JSONArray)((JSONObject) mainsAgg.get("symbionts_biosamples_status")).get("buckets");
+        if (!symbionts_biosamples_arr.isEmpty()) {
+            JSONObject symbiontsBioSamplesStatus = (JSONObject)symbionts_biosamples_arr.get(0);
+            statusArr.add(symbiontsBioSamplesStatus);
+            filterMap.put("symbionts_biosamples_status", new ArrayList<JSONObject>(Arrays.asList(symbiontsBioSamplesStatus)));
+        }
+
+        JSONArray symbionts_rawdata_arr = (JSONArray)((JSONObject) mainsAgg.get("symbionts_raw_data_status")).get("buckets");
+        if (!symbionts_rawdata_arr.isEmpty()) {
+            JSONObject symbiontsRawDataStatus = (JSONObject)symbionts_rawdata_arr.get(0);
+            statusArr.add(symbiontsRawDataStatus);
+            filterMap.put("symbionts_raw_data_status", new ArrayList<JSONObject>(Arrays.asList(symbiontsRawDataStatus)));
+        }
+
+        JSONArray symbionts_assemblies_arr = (JSONArray)((JSONObject) mainsAgg.get("symbionts_assemblies_status")).get("buckets");
+        if (!symbionts_assemblies_arr.isEmpty()) {
+            JSONObject symbiontsAssembliesStatus = (JSONObject)symbionts_assemblies_arr.get(0);
+            statusArr.add(symbiontsAssembliesStatus);
+            filterMap.put("symbionts_assemblies_status", new ArrayList<JSONObject>(Arrays.asList(symbiontsAssembliesStatus)));
         }
 
         return filterMap;
@@ -218,10 +248,14 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
             sb.append(sort);
         sb.append("'query' : { 'bool' : { 'must' : [");
 
-        if(searchQuery.length() != 0) {
-            sb.append("{'query_string': {");
+        if (searchQuery.length() != 0) {
+            sb.append("{'multi_match': {");
+            sb.append("'operator': 'AND',");
             sb.append("'query' : '" + searchQuery.toString() + "',");
-            sb.append("'fields' : ['organism','commonName','biosamples.keyword','raw_data.keyword','mapped_reads.keyword','assemblies.keyword','annotation_complete.keyword','annotation.keyword']");
+            sb.append("'fields' : ['organism.autocomp', 'commonName.autocomp', 'biosamples.autocomp','raw_data.autocomp'," +
+                    "'mapped_reads.autocomp'," +
+                    "'assemblies.autocomp','annotation_complete.autocomp','annotation.autocomp', " +
+                    "'symbionts_records.organism.text.autocomp']");
             sb.append("}},");
         }
 
@@ -288,7 +322,22 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
                     sb.append("{'terms' : {'annotation.keyword':[");
                     sb.append("'" + splitArray[1].trim() + "'");
                     sb.append("]}},");
-                } else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
+                }else if (splitArray[0].trim().equals("symbiontsBioSamplesStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsBioSamplesStatus-", "");
+                    sb.append("{'terms' : {'symbionts_biosamples_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("symbiontsRawDataStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsRawDataStatus-", "");
+                    sb.append("{'terms' : {'symbionts_raw_data_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("symbiontsAssembliesStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsAssembliesStatus-", "");
+                    sb.append("{'terms' : {'symbionts_assemblies_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                }else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
                     isPhylogenyFilter = true;
                     phylogenyRank = splitArray[0].trim();
                     phylogenyTaxId = splitArray[1].trim();
@@ -307,6 +356,9 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         }
 
         sb.append("'aggregations': {");
+        sb.append("'symbionts_biosamples_status': {'terms': {'field': 'symbionts_biosamples_status'}},");
+        sb.append("'symbionts_raw_data_status': {'terms': {'field': 'symbionts_raw_data_status'}},");
+        sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}},");
         sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
         sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
         sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}},");
@@ -358,13 +410,21 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         }
         if (sort.length() != 0)
             sb.append(sort);
-        sb.append("'query': {");
-        sb.append("'query_string': {");
+
+        sb.append("'query' : ");
+        sb.append("{'multi_match': {");
+        sb.append("'operator': 'AND',");
         sb.append("'query' : '" + searchQuery.toString() + "',");
-        sb.append("'fields' : ['organism','commonName','biosamples.keyword','raw_data.keyword','mapped_reads.keyword','assemblies.keyword','annotation_complete.keyword','annotation.keyword']");
+        sb.append("'fields' : ['organism.autocomp', 'commonName.autocomp', 'biosamples.autocomp','raw_data.autocomp'," +
+                "'mapped_reads.autocomp'," +
+                "'assemblies.autocomp','annotation_complete.autocomp','annotation.autocomp', " +
+                "'symbionts_records.organism.text.autocomp']");
         sb.append("}},");
 
         sb.append("'aggregations': {");
+        sb.append("'symbionts_biosamples_status': {'terms': {'field': 'symbionts_biosamples_status'}},");
+        sb.append("'symbionts_raw_data_status': {'terms': {'field': 'symbionts_raw_data_status'}},");
+        sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}},");
         sb.append("'biosamples': {'terms': {'field': 'biosamples.keyword'}},");
         sb.append("'raw_data': {'terms': {'field': 'raw_data.keyword'}},");
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads.keyword'}},");
