@@ -52,11 +52,11 @@ public class OrganismServiceImpl implements OrganismService {
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
 
-//    @Value("${ES_USERNAME}")
-//    String esUsername;
-//
-//    @Value("${ES_PASSWORD}")
-//    String esPassword;
+    @Value("${ES_USERNAME}")
+    String esUsername;
+
+    @Value("${ES_PASSWORD}")
+    String esPassword;
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
@@ -142,7 +142,7 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/organisms_test/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/organisms_test/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
         JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
         JSONArray orgPartFilterObj = (JSONArray) ((JSONObject) aggregations.get("organism_part_filter")).get("buckets");
@@ -165,7 +165,7 @@ public class OrganismServiceImpl implements OrganismService {
 
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/organisms_test/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/organisms_test/_search", query);
 
 
         return respString;
@@ -183,7 +183,7 @@ public class OrganismServiceImpl implements OrganismService {
 
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/specimens_test/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/specimens_test/_search", query);
 
 
         return respString;
@@ -202,7 +202,7 @@ public class OrganismServiceImpl implements OrganismService {
         try {
             String query = sb.toString().replaceAll("'", "\"");
 
-            String respString = this.postRequest("https://" + esConnectionURL + "/geolocation_organism/_search", query);
+            String respString = this.postRequest( esConnectionURL + "/geolocation_organism/_search", query);
 
             ObjectMapper mapper = new ObjectMapper();
             NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
@@ -244,7 +244,7 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("}}}");
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/organisms_test/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/organisms_test/_search", query);
 
         JSONObject aggregations = null;
         try {
@@ -274,7 +274,7 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/data_portal/_search", query);
 
         JSONObject aggregations = null;
         try {
