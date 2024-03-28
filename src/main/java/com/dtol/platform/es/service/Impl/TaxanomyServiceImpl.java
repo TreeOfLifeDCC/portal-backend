@@ -3,9 +3,11 @@ package com.dtol.platform.es.service.Impl;
 import com.dtol.platform.es.service.TaxanomyService;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.simple.JSONArray;
@@ -31,7 +33,10 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
-
+//    @Value("${ES_USERNAME}")
+//    String esUsername;
+//    @Value("${ES_PASSWORD}")
+//    String esPassword;
     @Autowired
     Driver driver;
 
@@ -47,7 +52,9 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("https://" + esConnectionURL + "/ontology/_search", query);
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/ontology/_search", query);
+
 
         return respString;
     }
@@ -73,7 +80,9 @@ public class TaxanomyServiceImpl implements TaxanomyService {
 
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
 
         return aggregations.toJSONString();
@@ -416,7 +425,10 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         sb.append("'tribe':{'terms':{'field':'taxonomies.tribe', 'size': 20000}},");
         sb.append("'varietas':{'terms':{'field':'taxonomies.varietas', 'size': 20000}}");
     }
-
+    private static final String getBasicAuthenticationHeader(String username, String password) {
+        String valueToEncode = username + ":" + password;
+        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
     private String postRequest(String baseURL, String body) {
         CloseableHttpClient client = HttpClients.createDefault();
         StringEntity entity = null;
@@ -427,6 +439,8 @@ public class TaxanomyServiceImpl implements TaxanomyService {
             httpPost.setEntity(entity);
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
+
+//            httpPost.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
             CloseableHttpResponse rs = client.execute(httpPost);
             resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
         } catch (IOException e) {
@@ -489,6 +503,80 @@ public class TaxanomyServiceImpl implements TaxanomyService {
         }
         String response = root.toJSONString();
         response = response.replaceAll("child","children");
+        return response;
+    }
+
+    @Override
+    public String getPhylogeneticSpecialRankTree() {
+        JSONArray resultList = new JSONArray();
+        JSONObject root = new JSONObject();
+        try (Session session = driver.session()) {
+            String query ="MATCH (parent:Phylogeny {parentId: 0})-[:CHILDREN]->(child:Phylogeny) "+
+                    "WITH child "+
+                    "MATCH childPath=(child)-[:CHILDREN*0..]->(subChild) "+
+                    "with childPath  "+
+                    ",CASE WHEN subChild:Phylogeny THEN subChild.id END as orderField order by orderField "+
+                    "with collect(childPath) as paths "+
+                    "CALL apoc.convert.toTree(paths) yield value "+
+                    "RETURN value";
+            Result result = session.run(query);
+            StringBuilder sb = new StringBuilder();
+            while ( result.hasNext() ) {
+                Record record = result.next();
+                Map<String, Object> map = new HashMap<>();
+                map = record.asMap();
+                String recordString = new Gson().toJson(map.get("value"));
+                JSONParser parser = new JSONParser();
+                JSONObject json = (JSONObject) parser.parse(recordString);
+                resultList.add(json);
+            }
+            root.put("id", 1);
+            root.put("name", "Eukaryota");
+            root.put("parentId", 0);
+            root.put("commonName", "eucaryotes");
+            root.put("children", resultList);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        String response = root.toJSONString();
+        return response;
+    }
+
+    @Override
+    public String phylogeneticSpecialRankTreeSearch(String param) {
+        JSONArray resultList = new JSONArray();
+        JSONObject root = new JSONObject();
+        try (Session session = driver.session()) {
+            String query ="MATCH (parent:Phylogeny)-[:CHILDREN]->(child:Phylogeny) where parent.name=~'.*"+param+".*'"+
+                    "WITH child "+
+                    "MATCH childPath=(child)-[:CHILDREN*0..]->(subChild) "+
+                    "with childPath  "+
+                    ",CASE WHEN subChild:Phylogeny THEN subChild.id END as orderField order by orderField "+
+                    "with collect(childPath) as paths "+
+                    "CALL apoc.convert.toTree(paths) yield value "+
+                    "RETURN value";
+            Result result = session.run(query);
+            StringBuilder sb = new StringBuilder();
+            while ( result.hasNext() ) {
+                Record record = result.next();
+                Map<String, Object> map = new HashMap<>();
+                map = record.asMap();
+                String recordString = new Gson().toJson(map.get("value"));
+                JSONParser parser = new JSONParser();
+                JSONObject json = (JSONObject) parser.parse(recordString);
+                resultList.add(json);
+            }
+            root.put("id", 1);
+            root.put("name", "Eukaryota");
+            root.put("parentId", 0);
+            root.put("commonName", "eucaryotes");
+            root.put("children", resultList);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        String response = root.toJSONString();
         return response;
     }
 }

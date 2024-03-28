@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface RootSampleService {
 
-    public JSONArray findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException;
+    public String findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder,Optional<String> search, Optional<String> filter, Optional<String> taxonomyFilter) throws ParseException;
 
     public Map<String, List<JSONObject>> getRootOrganismFilters() throws ParseException;
     Map<String, List<JSONObject>> getExperimentTypeFilters() throws ParseException;
@@ -46,7 +46,9 @@ public interface RootSampleService {
 
     public ByteArrayInputStream csvDownload(Optional<String> search, Optional<String> filter, Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter) throws ParseException, IOException;
 
-    public JSONArray getGisData() throws ParseException;
+    public String getGisData(String search, Optional<String> filter) throws ParseException;
+
+    JSONArray getGisData() throws ParseException;
 
     ByteArrayInputStream getDataFiles(Optional<String> search, Optional<String> filter,Optional<String> from, Optional<String> size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> taxonomyFilter,String downloadOption) throws ParseException, IOException;
 

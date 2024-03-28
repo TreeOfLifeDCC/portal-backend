@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -42,10 +43,16 @@ public class RootSampleServiceImpl implements RootSampleService {
     RootOrganismRepository rootOrganismRepository;
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
+
+//    @Value("${ES_USERNAME}")
+//    String esUsername;
+//
+//    @Value("${ES_PASSWORD}")
+//    String esPassword;
     static final String[] taxaRankArray = {"superkingdom", "kingdom", "subkingdom", "superphylum", "phylum", "subphylum", "superclass", "class", "subclass", "infraclass", "cohort", "subcohort", "superorder", "order", "suborder", "infraorder", "parvorder", "section", "subsection", "superfamily", "family", "subfamily", "tribe", "subtribe", "genus", "series", "subgenus", "species_group", "species_subgroup", "species", "subspecies", "varietas", "forma"};
 
     @Override
-    public JSONArray findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder) throws ParseException {
+    public String findAllOrganisms(int page, int size, Optional<String> sortColumn, Optional<String> sortOrder, Optional<String> search, Optional<String> filter, Optional<String> taxonomyFilter) throws ParseException {
         StringBuilder sb = new StringBuilder();
         StringBuilder sort = this.getSortQuery(sortColumn, sortOrder);
 
@@ -57,9 +64,13 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"");
+
         String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
-        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
-        return respArray;
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", getOrganismFilterQuery(search, filter, String.valueOf(page),String.valueOf(size), sortColumn, sortOrder,  taxonomyFilter));
+//        JSONArray respArray = ((JSONObject) new JSONParser().parse(respString));
+        return respString;
+
     }
 
 
@@ -84,7 +95,9 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         String query = sb.toString().replaceAll("'", "\"");
 
+
         String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("trackingSystem")).get("rank");
         JSONArray trackFilterArray = (JSONArray) (aggregations.get("buckets"));
         for (int i = 0; i < trackFilterArray.size(); i++) {
@@ -144,7 +157,9 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("experiment")).get("library_construction_protocol");
         JSONArray libraryConstructionProtocol = (JSONArray) (aggregations.get("buckets"));
 
@@ -180,7 +195,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'organism_part_filter':{'terms':{'field':'records.organismPart', 'size': 2000}}");
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        String respString = this.postRequest("http://" +esConnectionURL + "/data_portal/_search", query);
+
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
         JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
         JSONArray trackFilter = (JSONArray) ((JSONObject) aggregations.get("tracking_status_filter")).get("buckets");
@@ -200,7 +217,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getSecondaryOrganismFilterResultQuery(organism, filter, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
         return respString;
     }
 
@@ -210,7 +229,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
-        respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
         return respString;
     }
 
@@ -221,7 +242,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getRootOrganismSearchQuery(search, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
 
         return respString;
     }
@@ -244,7 +267,9 @@ public class RootSampleServiceImpl implements RootSampleService {
                 sort.append("{'" + sortColumnName + "':'desc'}");
             }
         } else {
-            sort.append("{'trackingSystem.rank':{'order':'desc','nested':{'path': 'trackingSystem', 'filter': {'term': {'trackingSystem.status': 'Done'}}}}}");
+
+            sort.append("{'trackingSystem.rank':{'order':'desc','nested':{ 'path': 'trackingSystem', 'filter':{'term':{'trackingSystem.status':'Done'}}}}}");
+
         }
         sort.append("],");
 
@@ -316,9 +341,13 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("'query' : { 'bool' : { 'must' : [");
 
         if (searchQuery.length() != 0) {
-            sb.append("{'query_string': {");
+            sb.append("{'multi_match': {");
+            sb.append("'operator': 'AND',");
             sb.append("'query' : '" + searchQuery.toString() + "',");
-            sb.append("'fields' : ['organism.normalize','commonName.normalize', 'biosamples','raw_data','mapped_reads','assemblies_status','annotation_complete','annotation_status']");
+            sb.append("'fields' : ['organism.autocomp', 'commonName.autocomp', 'biosamples.autocomp','raw_data.autocomp'," +
+                    "'mapped_reads.autocomp'," +
+                    "'assemblies_status.autocomp','annotation_complete.autocomp','annotation_status.autocomp', " +
+                    "'symbionts_records.organism.text.autocomp']");
             sb.append("}},");
         }
 
@@ -403,10 +432,26 @@ public class RootSampleServiceImpl implements RootSampleService {
                     sb.append("{ 'term' : { 'taxonomies.");
                     sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
                     sb.append("]}}}}}},");
-                }else {
+                } else if (splitArray[0].trim().equals("symbiontsBioSamplesStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsBioSamplesStatus-", "");
+                    sb.append("{'terms' : {'symbionts_biosamples_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("symbiontsRawDataStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsRawDataStatus-", "");
+                    sb.append("{'terms' : {'symbionts_raw_data_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("symbiontsAssembliesStatus")) {
+                    String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsAssembliesStatus-", "");
+                    sb.append("{'terms' : {'symbionts_assemblies_status':[");
+                    sb.append("'" + symbiontsStatusFilter.trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("experimentType")) {
+                    String experimentTypeFilter = filterArray[i].trim().replaceFirst("experimentType-", "");
                     sb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
                     sb.append("{ 'bool' : { 'must' : [");
-                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ filterArray[i]+ "'"  );
+                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ experimentTypeFilter.trim()+ "'"  );
                     sb.append("}}]}}}},");
                 }
             }
@@ -437,6 +482,9 @@ public class RootSampleServiceImpl implements RootSampleService {
             sb.append("'taxId':{'terms':{'field':'taxonomies." + phylogenyRank + ".tax_id.keyword', 'size': 20000}}}}}},");
         }
 
+        sb.append("'symbionts_biosamples_status': {'terms': {'field': 'symbionts_biosamples_status'}},");
+        sb.append("'symbionts_raw_data_status': {'terms': {'field': 'symbionts_raw_data_status'}},");
+        sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}},");
         sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
         sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
@@ -478,13 +526,21 @@ public class RootSampleServiceImpl implements RootSampleService {
         }
         if (sort.length() != 0)
             sb.append(sort);
-        sb.append("'query': {");
-        sb.append("'query_string': {");
+
+        sb.append("'query' : ");
+        sb.append("{'multi_match': {");
+        sb.append("'operator': 'AND',");
         sb.append("'query' : '" + searchQuery.toString() + "',");
-        sb.append("'fields' : ['organism.normalize','commonName.normalize', 'biosamples','raw_data','mapped_reads','assemblies_status','annotation_complete','annotation_status']");
+        sb.append("'fields' : ['organism.autocomp', 'commonName.autocomp', 'biosamples.autocomp','raw_data.autocomp'," +
+                "'mapped_reads.autocomp'," +
+                "'assemblies_status.autocomp','annotation_complete.autocomp','annotation_status.autocomp', " +
+                "'symbionts_records.organism.text.autocomp']");
         sb.append("}},");
 
         sb.append("'aggregations': {");
+        sb.append("'symbionts_biosamples_status': {'terms': {'field': 'symbionts_biosamples_status'}},");
+        sb.append("'symbionts_raw_data_status': {'terms': {'field': 'symbionts_raw_data_status'}},");
+        sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}},");
         sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
         sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
         sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
@@ -513,7 +569,10 @@ public class RootSampleServiceImpl implements RootSampleService {
 
         return query;
     }
-
+    private static final String getBasicAuthenticationHeader(String username, String password) {
+        String valueToEncode = username + ":" + password;
+        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
     private String postRequest(String baseURL, String body) {
         CloseableHttpClient client = HttpClients.createDefault();
         StringEntity entity = null;
@@ -524,6 +583,8 @@ public class RootSampleServiceImpl implements RootSampleService {
             httpPost.setEntity(entity);
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
+//            httpPost.setHeader("Authorization", getBasicAuthenticationHeader(esUsername,esPassword));
+
             CloseableHttpResponse rs = client.execute(httpPost);
             resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
         } catch (IOException e) {
@@ -540,7 +601,9 @@ public class RootSampleServiceImpl implements RootSampleService {
 
     @Override
     public long getRootOrganismCount() throws ParseException {
-        String respString = this.getRequest("https://" + esConnectionURL + "/data_portal/_count");
+
+        String respString = this.getRequest( "http://" +esConnectionURL + "/data_portal/_count");
+
         JSONObject resp = (JSONObject) new JSONParser().parse(respString);
         long count = Long.valueOf(resp.get("count").toString());
         return count;
@@ -548,7 +611,9 @@ public class RootSampleServiceImpl implements RootSampleService {
 
     @Override
     public long getRelatedOrganismCount() throws ParseException {
-        String respString = this.getRequest("https://" + esConnectionURL + "/data_portal/_count");
+
+        String respString = this.getRequest( "http://" +esConnectionURL + "/data_portal/_count");
+
         JSONObject resp = (JSONObject) new JSONParser().parse(respString);
         long count = Long.valueOf(resp.get("count").toString());
         return count;
@@ -600,7 +665,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getDistinctRootSamplesByOrganismQuery(size, sortColumn, sortOrder, afterKey);
-        respString = this.postRequest("https://" + esConnectionURL + "/root_samples/_search", query);
+
+        respString = this.postRequest( "http://" +esConnectionURL + "/root_samples/_search", query);
+
         JSONObject res = (JSONObject) new JSONParser().parse(respString);
         return res;
     }
@@ -611,7 +678,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getDistinctRootSamplesCountByOrganismQuery();
-        respString = this.postRequest("https://" + esConnectionURL + "/root_samples/_search", query);
+
+        respString = this.postRequest( "http://" +esConnectionURL + "/root_samples/_search", query);
+
         JSONObject resp = (JSONObject) new JSONParser().parse(respString);
         String count = ((JSONObject) ((JSONObject) resp.get("aggregations")).get("type_count")).get("value").toString();
         return count;
@@ -638,7 +707,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/root_samples/_search", query);
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/root_samples/_search", query);
+
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations"));
         JSONArray accession = (JSONArray) ((JSONObject) aggregations.get("accession")).get("buckets");
 
@@ -655,7 +726,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("']}}]}}}");
         String query = sb.toString().replaceAll("'", "\"");
 
-        String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
         JSONObject resp = (JSONObject) ((JSONArray) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits"))).get("hits")).get(0);
         JSONObject source = (JSONObject) resp.get("_source");
         JSONArray experiment = (JSONArray) source.get("experiment");
@@ -688,7 +761,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
-        respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
         JSONParser parser = new JSONParser();
         jsonResponse = (JSONObject) parser.parse(respString);
         JSONArray jsonList = (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
@@ -709,7 +784,7 @@ public class RootSampleServiceImpl implements RootSampleService {
                 String goatInfo = "";
                 String genome = "";
                 String tolqc = "";
-                String tolid = "-";
+                JSONArray tolids;
 
                 organism = obj.get("organism").toString();
 
@@ -726,16 +801,23 @@ public class RootSampleServiceImpl implements RootSampleService {
                     goatInfo = ((JSONObject) obj.get("goat_info")).get("url").toString();
                 }
                 if (obj.get("tolid") != null) {
-                    tolid = obj.get("tolid").toString();
-                    String organismName = organism.replaceAll(" ", "-");
-                    String clade = tolCodes.get(Character.toString(tolid.charAt(0))).toString();
-                    tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
+                    tolids = ((JSONArray) obj.get("tolid"));
+                    if (tolids.size() > 0 && (tolids.get(0)!= null && tolids.get(0).toString().length() > 0 )) {
+                        String organismName = organism.replaceAll(" ", "-");
+                        String clade = tolCodes.get(Character.toString(String.valueOf(tolids.get(0)).charAt(0))).toString();
+                        tolqc = "https://tolqc.cog.sanger.ac.uk/darwin/" + clade + "/" + organismName;
+                    }
+                }else{
+                    String empty="-";
+                    tolids= new JSONArray();
+                    tolids.add(empty);
                 }
                 String externalRef = (!goatInfo.isEmpty() ? goatInfo + ";" : "") + (!tolqc.isEmpty() ? tolqc + ";" : "") + (!genome.isEmpty() ? genome : "");
 
                 List<String> record = Arrays.asList(
-                        organism, tolid, insdc, commonName, obj.get("currentStatus").toString(), externalRef);
+                        organism, String.join(", " ,tolids), insdc, commonName, obj.get("currentStatus").toString(), externalRef);
                 csvPrinter.printRecord(record);
+
             }
             csvPrinter.flush();
             return new ByteArrayInputStream(out.toByteArray());
@@ -783,6 +865,8 @@ public class RootSampleServiceImpl implements RootSampleService {
             HttpGet httpGET = new HttpGet(baseURL);
             httpGET.setHeader("Accept", "application/json");
             httpGET.setHeader("Content-type", "application/json");
+//            httpGET.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
+
             CloseableHttpResponse rs = client.execute(httpGET);
             resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
         } catch (IOException e) {
@@ -802,7 +886,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         StringBuilder sb = new StringBuilder();
         String query = this.getOrganismFilterQuery(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
-        String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/data_portal/_search", query);
+
         ByteArrayInputStream csv = null;
         JSONParser parser = new JSONParser();
         jsonResponse = (JSONObject) parser.parse(respString);
@@ -818,7 +904,9 @@ public class RootSampleServiceImpl implements RootSampleService {
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getGisSearchQuery(search);
-        respString = this.postRequest("https://" + esConnectionURL + "/gis/_search", query);
+
+        respString = this.postRequest( "http://"+esConnectionURL  + "/gis/_search", query);
+
 
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
         return respArray;
@@ -995,17 +1083,14 @@ public class RootSampleServiceImpl implements RootSampleService {
     }
 
     @Override
-    public JSONArray getGisData() throws ParseException {
+    public String getGisData(String search, Optional<String> filter) throws ParseException {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("'from' :0 ,'size':1000000,");
-        sb.append("'query' : { 'match_all' : {}}");
-        sb.append("}");
-
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest("https://" + esConnectionURL + "/gis/_search", query);
-        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
-        return respArray;
+
+        String respString = this.postRequest( "http://" +esConnectionURL + "/gis_filter_data/_search", getGisFilterQuery(filter,search));
+
+        return respString;
+
     }
 
     private String getGisSearchQuery(String search) {
@@ -1035,7 +1120,149 @@ public class RootSampleServiceImpl implements RootSampleService {
         sb.append("]}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
+
         return query;
     }
+
+
+    private String getGisFilterQuery( Optional<String> filter, String search) throws ParseException {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder sbt = new StringBuilder();
+
+        Boolean isPhylogenyFilter = false;
+        String phylogenyRank = "";
+        String phylogenyTaxId = "";
+        StringBuilder searchQuery = new StringBuilder();
+
+        sb.append("{");
+
+        sb.append("'from' :" + 0 + ",'size':" + 100000 + ",");
+
+        sb.append("'query': { 'bool': { 'must': [ ");
+
+        if (!StringUtil.isNullOrEmpty(search)) {
+            String[] searchArray = search.split(" ");
+            for (String temp : searchArray) {
+                searchQuery.append("*" + temp + "*");
+            }
+            sb.append("{'nested': {'path': 'organisms','query': {'bool': {'must': [{'query_string': {");
+            sb.append("'query' : '" + searchQuery.toString() + "',");
+            sb.append("'fields' : ['organisms.organism.normalize','organisms.commonName.normalize', 'organisms.accession.normalize','organisms.lat','organisms.lng']");
+            sb.append("}}]}}}}");
+
+            sb.append(",");
+
+            sb.append("{'nested': {'path': 'specimens','query': {'bool': {'must': [{'query_string': {");
+            sb.append("'query' : '" + searchQuery.toString() + "',");
+            sb.append("'fields' : ['specimens.organism.normalize','specimens.commonName.normalize', 'specimens.accession.normalize','specimens.lat','specimens.lng']");
+            sb.append("}}]}}}}");
+            sb.append(",");
+
+        }
+
+        if (filter.isPresent() && (!filter.get().equals("undefined") && !filter.get().equals(""))) {
+            String[] filterArray = filter.get().split(",");
+            for (int i = 0; i < filterArray.length; i++) {
+                String[] splitArray = filterArray[i].split("-");
+
+                if (splitArray[0].trim().equals("Biosamples")) {
+                    sb.append("{'terms' : {'biosamples':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Raw data")) {
+                    sb.append("{'terms' : {'raw_data':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Mapped reads")) {
+                    sb.append("{'terms' : {'mapped_reads':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Assemblies")) {
+                    sb.append("{'terms' : {'assemblies_status':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Annotation complete")) {
+                    sb.append("{'terms' : {'annotation_complete':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Annotation")) {
+                    sb.append("{'terms' : {'annotation_status':[");
+                    sb.append("'" + splitArray[1].trim() + "'");
+                    sb.append("]}},");
+                } else if (splitArray[0].trim().equals("Genome Notes")) {
+                    sb.append("{ 'nested': {'path': 'genome_notes','query': {'bool': {'must': [{'exists': {'field': 'genome_notes.url'}}]}}}},");
+                } else if (Arrays.asList(taxaRankArray).contains(splitArray[0].trim())) {
+                    isPhylogenyFilter = true;
+                    phylogenyRank = splitArray[0].trim();
+                    phylogenyTaxId = splitArray[1].trim();
+                    sb.append("{ 'nested' : { 'path': 'taxonomies', 'query' : ");
+                    sb.append("{ 'nested' : { 'path': 'taxonomies." + splitArray[0].trim() + "', 'query' : ");
+                    sb.append("{ 'bool' : { 'must' : [");
+                    sb.append("{ 'term' : { 'taxonomies.");
+                    sb.append(splitArray[0].trim() + ".tax_id': '" + splitArray[1].trim() + "'}}");
+                    sb.append("]}}}}}},");
+                } else if (splitArray[0].trim().equals("experimentType")) {
+                    String experimentTypeFilter = filterArray[i].trim().replaceFirst("experimentType-", "");
+                    sb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
+                    sb.append("{ 'bool' : { 'must' : [");
+                    sb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ experimentTypeFilter.trim()+ "'"  );
+                    sb.append("}}]}}}},");
+                }
+            }
+            sb.append("]}},");
+        } else {
+            sb.append(sbt.toString());
+            sb.append("]}},");
+        }
+
+        sb.append("'aggregations': {");
+        sb.append("'kingdomRank': { 'nested': { 'path':'taxonomies.kingdom'},");
+        sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies.kingdom.scientificName', 'size': 20000},");
+        sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies.kingdom.commonName', 'size': 20000}},");
+        sb.append("'taxId':{'terms':{'field':'taxonomies.kingdom.tax_id.keyword', 'size': 20000}}}}}},");
+        if (isPhylogenyFilter) {
+            sb.append("'childRank': { 'nested': { 'path':'taxonomies." + phylogenyRank + "'},");
+            sb.append("'aggs':{'scientificName':{'terms':{'field':'taxonomies." + phylogenyRank + ".scientificName', 'size': 20000},");
+            sb.append("'aggs':{'commonName':{'terms':{'field':'taxonomies." + phylogenyRank + ".commonName', 'size': 20000}},");
+            sb.append("'taxId':{'terms':{'field':'taxonomies." + phylogenyRank + ".tax_id.keyword', 'size': 20000}}}}}},");
+        }
+
+        sb.append("'biosamples': {'terms': {'field': 'biosamples'}},");
+        sb.append("'raw_data': {'terms': {'field': 'raw_data'}},");
+        sb.append("'mapped_reads': {'terms': {'field': 'mapped_reads'}},");
+        sb.append("'assemblies': {'terms': {'field': 'assemblies_status'}},");
+        sb.append("'annotation_complete': {'terms': {'field': 'annotation_complete'}},");
+        sb.append("'annotation': {'terms': {'field': 'annotation_status'}},");
+        sb.append("'experiment': { 'nested': { 'path':'experiment'},");
+        sb.append("'aggs':{");
+        sb.append("'library_construction_protocol':{'terms':{'field':'experiment.library_construction_protocol.keyword'},");
+        sb.append("'aggs' : { 'organism_count' : { 'reverse_nested' : {}}");
+        sb.append("}}}},");
+        sb.append("'genome': { 'nested': { 'path':'genome_notes'},");
+        sb.append("'aggs':{");
+        sb.append("'genome_count':{'cardinality':{'field':'genome_notes.id'}");
+        sb.append("}}}");
+
+        sb.append("}");
+
+        sb.append("}");
+
+        String query = sb.toString().replaceAll("'", "\"").replaceAll(",]", "]");
+        return query;
+    }
+
+    @Override
+    public JSONArray getGisData() throws ParseException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("'from' :0 ,'size':1000000,");
+        sb.append("'query' : { 'match_all' : {}}");
+        sb.append("}");
+        String query = sb.toString().replaceAll("'", "\"");
+        String respString = this.postRequest( "http://" +esConnectionURL + "/gis/_search", query);
+        JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
+        return respArray;
+    }
+
 
 }

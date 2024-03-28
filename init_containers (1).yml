@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app.kubernetes.io/name: MyApp
+spec:
+  containers:
+  - name: main-container
+    image: busybox
+    command: ['sleep', '9999999999']
+  initContainers:
+  - name: init-elasticsearch
+    image: busybox
+    command: ['sh', '-c', 'until nslookup elasticsearch.elasticsearch.svc.cluster.local; do echo waiting for myservice; sleep 2; done;']

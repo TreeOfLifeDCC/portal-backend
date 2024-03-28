@@ -51,6 +51,12 @@ public class OrganismServiceImpl implements OrganismService {
     OrganismRepository organismRepository;
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
+
+//    @Value("${ES_USERNAME}")
+//    String esUsername;
+//
+//    @Value("${ES_PASSWORD}")
+//    String esPassword;
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
@@ -135,6 +141,7 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("'organism_part_filter':{'terms':{'field':'records.organismPart', 'size': 2000}}");
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
+
         String respString = this.postRequest("https://" + esConnectionURL + "/organisms_test/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
         JSONArray sexFilter = (JSONArray) ((JSONObject) aggregations.get("sex_filter")).get("buckets");
@@ -157,7 +164,9 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("']}}]}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
+
         String respString = this.postRequest("https://" + esConnectionURL + "/organisms_test/_search", query);
+
 
         return respString;
     }
@@ -173,7 +182,9 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append("']}}]}}}");
 
         String query = sb.toString().replaceAll("'", "\"");
+
         String respString = this.postRequest("https://" + esConnectionURL + "/specimens_test/_search", query);
+
 
         return respString;
     }
@@ -190,7 +201,9 @@ public class OrganismServiceImpl implements OrganismService {
 
         try {
             String query = sb.toString().replaceAll("'", "\"");
+
             String respString = this.postRequest("https://" + esConnectionURL + "/geolocation_organism/_search", query);
+
             ObjectMapper mapper = new ObjectMapper();
             NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
             JSONObject hits = (JSONObject) (((JSONObject) new JSONParser().parse(respString)).get("hits"));
@@ -230,7 +243,9 @@ public class OrganismServiceImpl implements OrganismService {
         sb.append(" 'sex': {'terms':{'field':'sex.keyword'}");
         sb.append("}}}");
         String query = sb.toString().replaceAll("'", "\"");
+
         String respString = this.postRequest("https://" + esConnectionURL + "/organisms_test/_search", query);
+
         JSONObject aggregations = null;
         try {
             aggregations = (JSONObject) (((JSONObject) new JSONParser().parse(respString)).get("aggregations"));
@@ -258,7 +273,9 @@ public class OrganismServiceImpl implements OrganismService {
 
         sb.append("}}}}");
         String query = sb.toString().replaceAll("'", "\"");
+
         String respString = this.postRequest("https://" + esConnectionURL + "/data_portal/_search", query);
+
         JSONObject aggregations = null;
         try {
             aggregations = (JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("filters");
@@ -286,7 +303,10 @@ public class OrganismServiceImpl implements OrganismService {
         });
         return response;
     }
-
+    private static final String getBasicAuthenticationHeader(String username, String password) {
+        String valueToEncode = username + ":" + password;
+        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
     private String postRequest(String baseURL, String body) {
         CloseableHttpClient client = HttpClients.createDefault();
         StringEntity entity = null;
@@ -297,6 +317,8 @@ public class OrganismServiceImpl implements OrganismService {
             httpPost.setEntity(entity);
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
+//            httpPost.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
+
             CloseableHttpResponse rs = client.execute(httpPost);
             InputStream st = rs.getEntity().getContent();
             resp = IOUtils.toString(st, StandardCharsets.UTF_8.name());

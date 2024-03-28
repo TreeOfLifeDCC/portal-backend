@@ -61,4 +61,20 @@ public class TaxanomyController {
         String resp = taxanomyService.phylogeneticTreeSearch(param);
         return new ResponseEntity<String>(resp, HttpStatus.OK);
     }
+
+    @CrossOrigin()
+    @ApiOperation(value = "Get Taxonomy hierarchical tree data")
+    @RequestMapping(value = "/rank/tree", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getPhylogeneticSpecialRankTree() throws ParseException {
+        String resp = taxanomyService.getPhylogeneticSpecialRankTree();
+        return new ResponseEntity<String>(resp, HttpStatus.OK);
+    }
+
+    @CrossOrigin()
+    @ApiOperation(value = "Get Taxonomy hierarchical search data")
+    @RequestMapping(value = "/rank/tree/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> phylogeneticSpecialRankTreeSearch(@PathParam("param") String param) throws ParseException {
+        String resp = taxanomyService.phylogeneticSpecialRankTreeSearch(param);
+        return new ResponseEntity<String>(resp, HttpStatus.OK);
+    }
 }
