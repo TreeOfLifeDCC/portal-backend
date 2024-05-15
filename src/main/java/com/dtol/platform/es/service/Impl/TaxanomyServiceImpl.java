@@ -224,10 +224,35 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}}}}}");
                             else
                                 filtersb.append("]}}}}}},");
-                        } else {
+                        } else if (splitArray[0].trim().equals("symbiontsBioSamplesStatus")) {
+                            String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsBioSamplesStatus-", "");
+                            filtersb.append("{'terms' : {'symbionts_biosamples_status':[");
+                            filtersb.append("'" + symbiontsStatusFilter.trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        } else if (splitArray[0].trim().equals("symbiontsRawDataStatus")) {
+                            String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsRawDataStatus-", "");
+                            filtersb.append("{'terms' : {'symbionts_raw_data_status':[");
+                            filtersb.append("'" + symbiontsStatusFilter.trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        } else if (splitArray[0].trim().equals("symbiontsAssembliesStatus")) {
+                            String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsAssembliesStatus-", "");
+                            filtersb.append("{'terms' : {'symbionts_assemblies_status':[");
+                            filtersb.append("'" + symbiontsStatusFilter.trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        } else if (splitArray[0].trim().equals("experimentType")) {
+                            String experimentTypeFilter = filterArray[i].trim().replaceFirst("experimentType-", "");
                             filtersb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
                             filtersb.append("{ 'bool' : { 'must' : [");
-                            filtersb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '" + filterArray[i] + "'");
+                            filtersb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ experimentTypeFilter.trim()+ "'"  );
                             if (i == (filterArray.length - 1))
                                 filtersb.append("}}]}}}}");
                             else
@@ -298,10 +323,35 @@ public class TaxanomyServiceImpl implements TaxanomyService {
                                 filtersb.append("]}}}}}}");
                             else
                                 filtersb.append("]}}}}}},");
-                        } else {
+                        } else if (splitArray[0].trim().equals("symbiontsBioSamplesStatus")) {
+                            String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsBioSamplesStatus-", "");
+                            filtersb.append("{'terms' : {'symbionts_biosamples_status':[");
+                            filtersb.append("'" + symbiontsStatusFilter.trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        } else if (splitArray[0].trim().equals("symbiontsRawDataStatus")) {
+                            String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsRawDataStatus-", "");
+                            filtersb.append("{'terms' : {'symbionts_raw_data_status':[");
+                            filtersb.append("'" + symbiontsStatusFilter.trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        } else if (splitArray[0].trim().equals("symbiontsAssembliesStatus")) {
+                            String symbiontsStatusFilter = filterArray[i].trim().replaceFirst("symbiontsAssembliesStatus-", "");
+                            filtersb.append("{'terms' : {'symbionts_assemblies_status':[");
+                            filtersb.append("'" + symbiontsStatusFilter.trim() + "'");
+                            if (i == (filterArray.length - 1))
+                                filtersb.append("]}}");
+                            else
+                                filtersb.append("]}},");
+                        } else if (splitArray[0].trim().equals("experimentType")) {
+                            String experimentTypeFilter = filterArray[i].trim().replaceFirst("experimentType-", "");
                             filtersb.append("{ 'nested' : { 'path': 'experiment', 'query' : ");
                             filtersb.append("{ 'bool' : { 'must' : [");
-                            filtersb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ filterArray[i]+ "'"  );
+                            filtersb.append("{ 'term' : { 'experiment.library_construction_protocol.keyword' : '"+ experimentTypeFilter.trim()+ "'"  );
 
                             if (i == (filterArray.length - 1))
                                 filtersb.append("}}]}}}}");
