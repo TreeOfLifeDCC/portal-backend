@@ -43,11 +43,11 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
     @Value("${ES_CONNECTION_URL}")
     String esConnectionURL;
 
-//    @Value("${ES_USERNAME}")
-//    String esUsername;
-//
-//    @Value("${ES_PASSWORD}")
-//    String esPassword;
+    @Value("${ES_USERNAME}")
+    String esUsername;
+
+    @Value("${ES_PASSWORD}")
+    String esPassword;
 
     static final String [] taxaRankArray = {"superkingdom", "kingdom","subkingdom","superphylum","phylum","subphylum","superclass","class","subclass","infraclass","cohort","subcohort","superorder","order","suborder","infraorder","parvorder","section","subsection","superfamily","family","subfamily","tribe","subtribe","genus","series","subgenus","species_group","species_subgroup","species","subspecies","varietas","forma"};
 
@@ -64,14 +64,14 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("}");
 
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest( "http://" +esConnectionURL + "/tracking_status_index/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/tracking_status_index/_search", query);
         JSONArray respArray = (JSONArray) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("hits")).get("hits");
         return respArray;
     }
 
     @Override
     public long getBiosampleStatusTrackingCount() throws ParseException {
-        String respString = this.getRequest( "http://" +esConnectionURL + "/tracking_status_index/_count");
+        String respString = this.getRequest( esConnectionURL + "/tracking_status_index/_count");
         JSONObject resp = (JSONObject) new JSONParser().parse(respString);
         long count = Long.valueOf(resp.get("count").toString());
         return count;
@@ -93,7 +93,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         sb.append("'symbionts_assemblies_status': {'terms': {'field': 'symbionts_assemblies_status'}}");
         sb.append("}}");
         String query = sb.toString().replaceAll("'", "\"");
-        String respString = this.postRequest( "http://" +esConnectionURL + "/tracking_status_index/_search", query);
+        String respString = this.postRequest( esConnectionURL + "/tracking_status_index/_search", query);
         JSONObject aggregations = (JSONObject) ((JSONObject) ((JSONObject) ((JSONObject) new JSONParser().parse(respString)).get("aggregations")).get("trackingSystem")).get("rank");
         JSONArray trackFilterArray = (JSONArray) (aggregations.get("buckets"));
         for(int i=0; i<trackFilterArray.size();i++) {
@@ -161,7 +161,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.filterQueryGenerator(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
-        respString = this.postRequest( "http://" +esConnectionURL + "/tracking_status_index/_search", query);
+        respString = this.postRequest( esConnectionURL + "/tracking_status_index/_search", query);
 
         return respString;
     }
@@ -173,7 +173,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.searchQueryGenerator(search, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest( "http://" +esConnectionURL + "/tracking_status_index/_search", query);
+        respString = this.postRequest( esConnectionURL + "/tracking_status_index/_search", query);
 
         return respString;
     }
@@ -185,7 +185,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         JSONObject jsonResponse = new JSONObject();
         HashMap<String, Object> response = new HashMap<>();
         String query = this.getOrganismByText(search, from.get(), size.get(), sortColumn, sortOrder);
-        respString = this.postRequest( "http://" +esConnectionURL + "/organisms/_search", query);
+        respString = this.postRequest( esConnectionURL + "/organisms/_search", query);
 
         return respString;
     }
@@ -450,12 +450,12 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         StringEntity entity = null;
         String resp = "";
         try {
-            HttpPost httpPost = new HttpPost(baseURL);
+            HttpPost httpPost = new HttpPost("https://" + baseURL);
             entity = new StringEntity(body);
             httpPost.setEntity(entity);
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "application/json");
-//            httpPost.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
+            httpPost.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
 
             CloseableHttpResponse rs = client.execute(httpPost);
             resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
@@ -496,10 +496,10 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         StringEntity entity = null;
         String resp = "";
         try {
-            HttpGet httpGET = new HttpGet(baseURL);
+            HttpGet httpGET = new HttpGet("https://"+baseURL);
             httpGET.setHeader("Accept", "application/json");
             httpGET.setHeader("Content-type", "application/json");
-//            httpGET.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
+            httpGET.setHeader("Authorization", getBasicAuthenticationHeader(esUsername, esPassword));
             CloseableHttpResponse rs = client.execute(httpGET);
             resp = IOUtils.toString(rs.getEntity().getContent(), StandardCharsets.UTF_8.name());
         } catch (IOException e) {
@@ -519,7 +519,7 @@ public class OrganismStatusTrackingServiceImpl implements OrganismStatusTracking
         String respString = null;
         JSONObject jsonResponse = new JSONObject();
         String query = this.filterQueryGenerator(search, filter, from.get(), size.get(), sortColumn, sortOrder, taxonomyFilter);
-        respString = this.postRequest( "http://" +esConnectionURL + "/tracking_status_index/_search", query);
+        respString = this.postRequest( esConnectionURL + "/tracking_status_index/_search", query);
         JSONParser parser = new JSONParser();
         jsonResponse = (JSONObject) parser.parse(respString);
         JSONArray jsonList =  (JSONArray) ((JSONObject) jsonResponse.get("hits")).get("hits");
